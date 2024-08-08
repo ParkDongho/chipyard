@@ -5,7 +5,6 @@ package firesim.bridges
 import chisel3._
 import chisel3.util._
 
-import firesim.midasexamples.PeekPokeMidasExampleHarness
 import org.chipsalliance.cde.config.Parameters
 import testchipip.iceblk.BlockDeviceKey
 

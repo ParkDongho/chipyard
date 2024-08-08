@@ -64,13 +64,6 @@ lazy val commonSettings = Seq(
 
 val rocketChipDir = file("generators/rocket-chip")
 
-lazy val firesimAsLibrary = sys.env.get("FIRESIM_STANDALONE") == None
-lazy val firesimDir = if (firesimAsLibrary) {
-  file("sims/firesim/sim/")
-} else {
-  file("../../sim")
-}
-
 /**
   * It has been a struggle for us to override settings in subprojects.
   * An example would be adding a dependency to rocketchip on midas's targetutils library,
@@ -328,16 +321,23 @@ lazy val rocketchip_inclusive_cache = (project in file("generators/rocket-chip-i
   .dependsOn(rocketchip)
   .settings(libraryDependencies ++= rocketLibDeps.value)
 
+lazy val firesimAsLibrary = sys.env.get("FIRESIM_STANDALONE") == None
+lazy val firesimDir = if(firesimAsLibrary) {
+  file("sims/firesim")
+} else {
+  file("sims/firesim-staging/firesim-symlink")
+}
+
 // Library components of FireSim
-lazy val midas      = (project in file ("sims/firesim/sim/midas"))
+lazy val midas      = (project in firesimDir / "sim/midas")
   .dependsOn(rocketchip, midasTargetUtils)
   .settings(libraryDependencies ++= Seq(
      "org.scalatestplus" %% "scalacheck-1-14" % "3.1.3.0" % "test"))
   .settings(commonSettings)
   .settings(chiselSettings)
 
-lazy val firesimLib = (project in file("sims/firesim/sim/firesim-lib"))
-  .dependsOn(midas, icenet, testchipip, rocketchip_blocks)
+lazy val firesimLib = (project in firesimDir / "sim/firesim-lib")
+  .dependsOn(midas)
   .settings(commonSettings)
   .settings(chiselSettings)
 
@@ -349,6 +349,7 @@ lazy val firechip = (project in file("generators/firechip"))
     Test / testGrouping := isolateAllTests( (Test / definedTests).value ),
     Test / testOptions += Tests.Argument("-oF")
   )
+
 lazy val fpga_shells = (project in file("./fpga/fpga-shells"))
   .dependsOn(rocketchip, rocketchip_blocks)
   .settings(libraryDependencies ++= rocketLibDeps.value)

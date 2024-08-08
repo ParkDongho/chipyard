@@ -1,5 +1,5 @@
 //See LICENSE for license details.
-package firesim.configs
+package firesim.bridges
 
 import org.chipsalliance.cde.config.Config
 import firesim.bridges.{LoopbackNIC}

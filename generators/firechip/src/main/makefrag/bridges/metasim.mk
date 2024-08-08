@@ -9,6 +9,7 @@ loadmem = $(if $(LOADMEM),+loadmem=$(abspath $(LOADMEM)),)
 benchmark = $(notdir $(basename $(if $(LOADMEM),$(notdir $(LOADMEM)),$(DESIGN))))
 logfile = $(if $(LOGFILE),$(abspath $(LOGFILE)),$(OUTPUT_DIR)/$(benchmark).$1.out)
 waveform = $(if $(WAVEFORM),$(abspath $(WAVEFORM)),$(OUTPUT_DIR)/$(benchmark).$1.$2)
+vcs_args = +vcs+initreg+0 +vcs+initmem+0
 
 run-verilator-debug run-verilator: run-verilator% : $(GENERATED_DIR)/V$(DESIGN)% $(LOADMEM)
 	mkdir -p $(OUTPUT_DIR)

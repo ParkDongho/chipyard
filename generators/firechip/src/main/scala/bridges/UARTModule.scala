@@ -4,7 +4,6 @@ package firesim.bridges
 
 import chisel3._
 
-import firesim.midasexamples.PeekPokeMidasExampleHarness
 import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.subsystem.PeripheryBusKey
 
