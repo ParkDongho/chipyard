@@ -112,7 +112,7 @@ lazy val chiselSettings = (if (chisel6) chisel6Settings else chisel3Settings) ++
 lazy val hardfloat = freshProject("hardfloat", file("generators/hardfloat/hardfloat"))
   .settings(chiselSettings)
   .settings(commonSettings)
-  .dependsOn(if (chisel6) midasStandaloneTargetUtils else midasTargetUtils)
+  .dependsOn(if (chisel6) midas_standalone_target_utils else midas_target_utils)
   .settings(
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.0" % "test"
@@ -148,15 +148,6 @@ lazy val rocketLibDeps = (rocketchip / Keys.libraryDependencies)
 
 
 // -- Chipyard-managed External Projects --
-
-// Contains annotations & firrtl passes you may wish to use in rocket-chip without
-// introducing a circular dependency between RC and MIDAS
-lazy val midasTargetUtils = (project in file ("sims/firesim/sim/midas/targetutils"))
-  .settings(commonSettings)
-  .settings(chiselSettings)
-lazy val midasStandaloneTargetUtils = (project in file("tools/midas-targetutils"))
-  .settings(commonSettings)
-  .settings(chiselSettings)
 
 lazy val testchipip = (project in file("generators/testchipip"))
   .dependsOn(rocketchip, rocketchip_blocks)
@@ -321,35 +312,6 @@ lazy val rocketchip_inclusive_cache = (project in file("generators/rocket-chip-i
   .dependsOn(rocketchip)
   .settings(libraryDependencies ++= rocketLibDeps.value)
 
-lazy val firesimAsLibrary = sys.env.get("FIRESIM_STANDALONE") == None
-lazy val firesimDir = if(firesimAsLibrary) {
-  file("sims/firesim")
-} else {
-  file("sims/firesim-staging/firesim-symlink")
-}
-
-// Library components of FireSim
-lazy val midas      = (project in firesimDir / "sim/midas")
-  .dependsOn(rocketchip, midasTargetUtils)
-  .settings(libraryDependencies ++= Seq(
-     "org.scalatestplus" %% "scalacheck-1-14" % "3.1.3.0" % "test"))
-  .settings(commonSettings)
-  .settings(chiselSettings)
-
-lazy val firesimLib = (project in firesimDir / "sim/firesim-lib")
-  .dependsOn(midas)
-  .settings(commonSettings)
-  .settings(chiselSettings)
-
-lazy val firechip = (project in file("generators/firechip"))
-  .dependsOn(chipyard, midasTargetUtils, midas, firesimLib % "test->test;compile->compile")
-  .settings(
-    chiselSettings,
-    commonSettings,
-    Test / testGrouping := isolateAllTests( (Test / definedTests).value ),
-    Test / testOptions += Tests.Argument("-oF")
-  )
-
 lazy val fpga_shells = (project in file("./fpga/fpga-shells"))
   .dependsOn(rocketchip, rocketchip_blocks)
   .settings(libraryDependencies ++= rocketLibDeps.value)
@@ -358,3 +320,36 @@ lazy val fpga_shells = (project in file("./fpga/fpga-shells"))
 lazy val chipyard_fpga = (project in file("./fpga"))
   .dependsOn(chipyard, fpga_shells)
   .settings(commonSettings)
+
+// Components of FireSim
+
+lazy val firesimAsLibrary = sys.env.get("FIRESIM_STANDALONE") == None
+lazy val firesimDir = if(firesimAsLibrary) {
+  file("sims/firesim")
+} else {
+  file("sims/firesim-staging/firesim-symlink")
+}
+
+// Contains annotations & firrtl passes you may wish to use in rocket-chip without
+// introducing a circular dependency between RC and MIDAS
+lazy val midas_target_utils = (project in firesimDir / "sim/midas/targetutils")
+  .settings(commonSettings)
+  .settings(chiselSettings)
+
+lazy val midas_standalone_target_utils = (project in file("tools/midas-targetutils"))
+  .settings(commonSettings)
+  .settings(chiselSettings)
+
+lazy val firesim_lib = (project in firesimDir / "sim/firesim-lib")
+  .dependsOn(midas_target_utils)
+  .settings(commonSettings)
+  .settings(chiselSettings)
+
+lazy val firechip = (project in file("generators/firechip"))
+  .dependsOn(chipyard, firesim_lib)
+  .settings(
+    chiselSettings,
+    commonSettings,
+    Test / testGrouping := isolateAllTests( (Test / definedTests).value ),
+    Test / testOptions += Tests.Argument("-oF")
+  )

@@ -5,14 +5,12 @@ package firesim.bridges
 import chisel3._
 
 import org.chipsalliance.cde.config.Parameters
-import freechips.rocketchip.subsystem.PeripheryBusKey
-
 import sifive.blocks.devices.uart.UARTParams
 
 class UARTDUT(implicit val p: Parameters) extends Module {
   val uartParams = UARTParams(address = 0x10013000)
 
-  val ep = Module(new UARTBridge(uartParams, p(PeripheryBusKey).dtsFrequency.get.toInt / 1000000))
+  val ep = Module(new UARTBridge(uartParams, 1e8 / 1e6))
   ep.io.reset    := reset
   ep.io.clock    := clock
   ep.io.uart.txd := ep.io.uart.rxd
