@@ -4,7 +4,7 @@ package firesim.bridges
 
 import chisel3._
 
-import midas.widgets.{RationalClockBridge, PeekPokeBridge}
+import firesim.lib.{RationalClockBridge, PeekPokeBridge}
 
 // A simple MIDAS harness that generates a legacy
 // module DUT (it has a single io: Data member) and connects all of

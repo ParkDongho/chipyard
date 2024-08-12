@@ -19,8 +19,8 @@ import testchipip.serdes.{ExternalSyncPhitIO}
 import testchipip.tsi.{SerialRAM}
 import icenet.{CanHavePeripheryIceNIC, SimNetwork, NicLoopback, NICKey, NICIOvonly}
 
-import junctions.{NastiKey, NastiParameters}
-import midas.models.{FASEDBridge, AXI4EdgeSummary, CompleteConfig}
+//import junctions.{NastiKey, NastiParameters}
+//import midas.models.{FASEDBridge, AXI4EdgeSummary, CompleteConfig}
 import firesim.bridges._
 import firesim.configs.MemModelKey
 import tracegen.{TraceGenSystemModuleImp}
@@ -120,14 +120,14 @@ class WithBlockDeviceBridge extends HarnessBinder({
 
 class WithFASEDBridge extends HarnessBinder({
   case (th: FireSim, port: AXI4MemPort, chipId: Int) => {
-    val nastiKey = NastiParameters(port.io.bits.r.bits.data.getWidth,
-                                   port.io.bits.ar.bits.addr.getWidth,
-                                   port.io.bits.ar.bits.id.getWidth)
-    FASEDBridge(port.io.clock, port.io.bits, th.harnessBinderReset.asBool,
-      CompleteConfig(th.p(firesim.configs.MemModelKey),
-        nastiKey,
-        Some(AXI4EdgeSummary(port.edge)),
-        Some(MainMemoryConsts.globalName(chipId))))(th.p)
+    //val nastiKey = NastiParameters(port.io.bits.r.bits.data.getWidth,
+    //                               port.io.bits.ar.bits.addr.getWidth,
+    //                               port.io.bits.ar.bits.id.getWidth)
+    //FASEDBridge(port.io.clock, port.io.bits, th.harnessBinderReset.asBool,
+    //  CompleteConfig(th.p(firesim.configs.MemModelKey),
+    //    nastiKey,
+    //    Some(AXI4EdgeSummary(port.edge)),
+    //    Some(MainMemoryConsts.globalName(chipId))))(th.p)
   }
 })
 

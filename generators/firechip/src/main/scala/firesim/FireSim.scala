@@ -15,7 +15,7 @@ import freechips.rocketchip.util.{ResetCatchAndSync, RecordMap}
 import freechips.rocketchip.tile.{RocketTile}
 import boom.v3.common.{BoomTile}
 
-import midas.widgets.{Bridge, PeekPokeBridge, RationalClockBridge, RationalClock, ResetPulseBridge, ResetPulseBridgeParameters}
+//import midas.widgets.{Bridge, PeekPokeBridge, RationalClockBridge, RationalClock, ResetPulseBridge, ResetPulseBridgeParameters}
 import midas.targetutils.{MemModelAnnotation, EnableModelMultiThreadingAnnotation}
 import chipyard._
 import chipyard.harness._
@@ -60,43 +60,43 @@ class FireSimClockBridgeInstantiator extends HarnessClockInstantiator {
     // The undivided reference clock as calculated by pllConfig must be instantiated
     findOrInstantiate(pllConfig.referenceFreqMHz.toInt, "reference")
 
-    val ratClocks = instantiatedClocks.map { case (freqMHz, (clock, names)) =>
-      (RationalClock(names.mkString(","), 1, pllConfig.referenceFreqMHz.toInt / freqMHz), clock)
-    }.toSeq
-    val clockBridge = Module(new RationalClockBridge(ratClocks.map(_._1)))
-    (clockBridge.io.clocks zip ratClocks).foreach { case (clk, rat) =>
-      rat._2 := clk
-    }
+    //val ratClocks = instantiatedClocks.map { case (freqMHz, (clock, names)) =>
+    //  (RationalClock(names.mkString(","), 1, pllConfig.referenceFreqMHz.toInt / freqMHz), clock)
+    //}.toSeq
+    //val clockBridge = Module(new RationalClockBridge(ratClocks.map(_._1)))
+    //(clockBridge.io.clocks zip ratClocks).foreach { case (clk, rat) =>
+    //  rat._2 := clk
+    //}
   }
 }
 
 class FireSim(implicit val p: Parameters) extends RawModule with HasHarnessInstantiators {
   require(harnessClockInstantiator.isInstanceOf[FireSimClockBridgeInstantiator])
-  freechips.rocketchip.util.property.cover.setPropLib(new midas.passes.FireSimPropertyLibrary())
+  //freechips.rocketchip.util.property.cover.setPropLib(new midas.passes.FireSimPropertyLibrary())
 
   // The peek-poke bridge must still be instantiated even though it's
   // functionally unused. This will be removed in a future PR.
   val dummy = WireInit(false.B)
-  val peekPokeBridge = PeekPokeBridge(harnessBinderClock, dummy)
+  //val peekPokeBridge = PeekPokeBridge(harnessBinderClock, dummy)
 
-  val resetBridge = Module(new ResetPulseBridge(ResetPulseBridgeParameters()))
-  // In effect, the bridge counts the length of the reset in terms of this clock.
-  resetBridge.io.clock := harnessBinderClock
+  //val resetBridge = Module(new ResetPulseBridge(ResetPulseBridgeParameters()))
+  //// In effect, the bridge counts the length of the reset in terms of this clock.
+  //resetBridge.io.clock := harnessBinderClock
 
   def referenceClockFreqMHz = 0.0
   def referenceClock = false.B.asClock // unused
-  def referenceReset = resetBridge.io.reset
+  def referenceReset = false.B//resetBridge.io.reset
   def success = { require(false, "success should not be used in Firesim"); false.B }
 
   override val supportsMultiChip = true
 
   val chiptops = instantiateChipTops()
 
-  // Ensures FireSim-synthesized assertions and instrumentation is disabled
-  // while resetBridge.io.reset is asserted.  This ensures assertions do not fire at
-  // time zero in the event their local reset is delayed (typically because it
-  // has been pipelined)
-  midas.targetutils.GlobalResetCondition(resetBridge.io.reset)
+  //// Ensures FireSim-synthesized assertions and instrumentation is disabled
+  //// while resetBridge.io.reset is asserted.  This ensures assertions do not fire at
+  //// time zero in the event their local reset is delayed (typically because it
+  //// has been pipelined)
+  //midas.targetutils.GlobalResetCondition(resetBridge.io.reset)
 
 
   // FireSim multi-cycle regfile optimization

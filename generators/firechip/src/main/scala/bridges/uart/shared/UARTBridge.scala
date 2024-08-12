@@ -1,7 +1,7 @@
 //See LICENSE for license details
 package firesim.bridges
 
-import midas.widgets._
+import firesim.lib._
 
 import chisel3._
 import chisel3.util._
@@ -38,11 +38,6 @@ class UARTBridge(uParams: UARTParams, freqMHz: Int)(implicit p: Parameters) exte
   val moduleName = "UARTBridgeModule"
   // Since we're extending BlackBox this is the port will connect to in our target's RTL
   val io = IO(new UARTBridgeTargetIO(uParams))
-  // Implement the bridgeIO member of Bridge using HostPort. This indicates that
-  // we want to divide io, into a bidirectional token stream with the input
-  // token corresponding to all of the inputs of this BlackBox, and the output token consisting of
-  // all of the outputs from the BlackBox
-  val bridgeIO = HostPort(io)
 
   // Do some intermediate work to compute our host-side BridgeModule's constructor argument
   val baudrate = uParams.initBaudRate

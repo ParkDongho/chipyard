@@ -341,7 +341,7 @@ lazy val midas_standalone_target_utils = (project in file("tools/midas-targetuti
   .settings(chiselSettings)
 
 lazy val firesim_lib = (project in firesimDir / "sim/firesim-lib")
-  .dependsOn(midas_target_utils)
+  .dependsOn(midas_target_utils, cde)
   .settings(commonSettings)
   .settings(chiselSettings)
 
