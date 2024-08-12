@@ -16,9 +16,10 @@ class BlockDevBridgeTargetIO(bdParams: BlockDeviceConfig) extends Bundle {
 }
 
 class BlockDevBridge(bdParams: BlockDeviceConfig) extends BlackBox
-    with Bridge {
+    with Bridge[HostPortIO[BlockDevBridgeTargetIO]] {
   val moduleName = "BlockDevBridgeModule"
   val io = IO(new BlockDevBridgeTargetIO(bdParams))
+  val bridgeIO = HostPort(io)
   val constructorArg = Some(bdParams)
   generateAnnotations()
 }

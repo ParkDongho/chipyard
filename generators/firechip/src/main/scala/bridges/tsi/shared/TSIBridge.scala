@@ -19,9 +19,10 @@ import testchipip.tsi.{TSIIO, TSI}
   */
 case class TSIBridgeParams(memoryRegionNameOpt: Option[String])
 
-class TSIBridge(memoryRegionNameOpt: Option[String]) extends BlackBox with Bridge {
+class TSIBridge(memoryRegionNameOpt: Option[String]) extends BlackBox with Bridge[HostPortIO[TSIBridgeTargetIO]] {
   val moduleName = "TSIBridgeModule"
   val io = IO(new TSIBridgeTargetIO)
+  val bridgeIO = HostPort(io)
   val constructorArg = Some(TSIBridgeParams(memoryRegionNameOpt))
   generateAnnotations()
 }

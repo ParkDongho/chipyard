@@ -19,9 +19,10 @@ case class DMIBridgeParams(memoryRegionNameOpt: Option[String], addrBits: Int)
 
 class DMIBridge(memoryRegionNameOpt: Option[String], addrBits: Int)
     extends BlackBox
-    with Bridge {
+    with Bridge[HostPortIO[DMIBridgeTargetIO]] {
   val moduleName = "DMIBridgeModule"
   val io             = IO(new DMIBridgeTargetIO(addrBits))
+  val bridgeIO = HostPort(io)
   val constructorArg = Some(DMIBridgeParams(memoryRegionNameOpt, addrBits: Int))
   generateAnnotations()
 }

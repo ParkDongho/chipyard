@@ -7,9 +7,10 @@ import chisel3._
 import org.chipsalliance.cde.config.Parameters
 
 class GroundTestBridge extends BlackBox
-    with Bridge {
+    with Bridge[HostPortIO[GroundTestBridgeTargetIO]] {
   val moduleName = "GroundTestBridgeModule"
   val io = IO(new GroundTestBridgeTargetIO)
+  val bridgeIO = HostPort(io)
   val constructorArg = None
   generateAnnotations()
 }

@@ -22,9 +22,10 @@ class CospikeTargetIO(widths: TraceBundleWidths) extends Bundle {
   */
 class CospikeBridge(params: CospikeBridgeParams)
     extends BlackBox
-    with Bridge {
+    with Bridge[HostPortIO[CospikeTargetIO]] {
   val moduleName = "CospikeBridgeModule"
   val io       = IO(new CospikeTargetIO(params.widths))
+  val bridgeIO = HostPort(io)
 
   // give the Cospike params to the GG module
   val constructorArg = Some(params)

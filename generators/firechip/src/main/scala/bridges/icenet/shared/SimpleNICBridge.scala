@@ -15,9 +15,10 @@ class NICTargetIO extends Bundle {
   val nic = Flipped(new NICIOvonly)
 }
 
-class NICBridge(implicit p: Parameters) extends BlackBox with Bridge {
+class NICBridge(implicit p: Parameters) extends BlackBox with Bridge[HostPortIO[NICTargetIO]] {
   val moduleName = "SimpleNICBridgeModule"
   val io = IO(new NICTargetIO)
+  val bridgeIO = HostPort(io)
   val constructorArg = None
   generateAnnotations()
 }

@@ -30,10 +30,11 @@ class TracerVTargetIO(widths: TraceBundleWidths) extends Bundle {
   */
 class TracerVBridge(widths: TraceBundleWidths)
     extends BlackBox
-    with Bridge {
+    with Bridge[HostPortIO[TracerVTargetIO]] {
   require(widths.retireWidth > 0, "TracerVBridge: number of instructions must be larger than 0")
   val moduleName = "TracerVBridgeModule"
   val io                                 = IO(new TracerVTargetIO(widths))
+  val bridgeIO = HostPort(io)
   val constructorArg                     = Some(widths)
   generateAnnotations()
   // Use in parent module: annotates the bridge instance's ports to indicate its trigger sources
