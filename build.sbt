@@ -332,16 +332,18 @@ lazy val firesimDir = if(firesimAsLibrary) {
 
 // Contains annotations & firrtl passes you may wish to use in rocket-chip without
 // introducing a circular dependency between RC and MIDAS
+// this should be minimally dependent on firesim
 lazy val midas_target_utils = (project in firesimDir / "sim/midas/targetutils")
   .settings(commonSettings)
   .settings(chiselSettings)
 
+// compiles with chisel6 (only the APIs)
 lazy val midas_standalone_target_utils = (project in file("tools/midas-targetutils"))
   .settings(commonSettings)
   .settings(chiselSettings)
 
 lazy val firesim_lib = (project in firesimDir / "sim/firesim-lib")
-  .dependsOn(midas_target_utils, cde)
+  .dependsOn(midas_target_utils)
   .settings(commonSettings)
   .settings(chiselSettings)
 
