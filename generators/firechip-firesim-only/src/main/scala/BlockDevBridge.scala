@@ -11,8 +11,8 @@ import midas.models.DynamicLatencyPipe
 import firesim.lib._
 import firesim.compat._
 
-class BlockDevBridgeModule(blockDevExternal: BlockDeviceConfig, hostP: Parameters) extends BridgeModule[HostPortIO[BlockDevBridgeTargetIO]]()(hostP) {
-  implicit override val p = hostP.alterPartial({ case BlockDeviceKey => Some(blockDevExternal) })
+class BlockDevBridgeModule(blockDevExternal: BlockDeviceConfig)(implicit p: Parameters)
+extends BridgeModule[HostPortIO[BlockDevBridgeTargetIO]]()(p) {
   lazy val module = new BridgeModuleImp(this) {
     // TODO use HasBlockDeviceParameters
     val dataBytes = 512

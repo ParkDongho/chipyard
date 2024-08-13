@@ -3,11 +3,13 @@ package firesim.bridges
 
 import chisel3._
 
+import org.chipsalliance.cde.config.Parameters
+
 import midas.widgets._
 import firesim.lib._
 import firesim.compat._
 
-class GroundTestBridgeModule extends BridgeModule[HostPortIO[GroundTestBridgeTargetIO]] {
+class GroundTestBridgeModule()(implicit p: Parameters) extends BridgeModule[HostPortIO[GroundTestBridgeTargetIO]]()(p) {
   lazy val module = new BridgeModuleImp(this) {
     val io = IO(new WidgetIO)
     val hPort = IO(HostPort(new GroundTestBridgeTargetIO))

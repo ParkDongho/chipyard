@@ -6,8 +6,6 @@ import chisel3.util._
 import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.util._
 
-import testchipip.cosim.{SerializableTileTraceIO, TileTraceIO, TraceBundleWidths}
-
 import midas.targetutils.TriggerSource
 import midas.widgets._
 import firesim.lib._
@@ -26,7 +24,7 @@ class TracerVBridgeModule(key: TraceBundleWidths)(implicit p: Parameters)
     val hPort = IO(HostPort(new TracerVTargetIO(key)))
 
     // Mask off valid committed instructions when under reset
-    val traces            = hPort.hBits.tiletrace.retiredinsns.map({ unmasked =>
+    val traces            = hPort.hBits.tiletrace.trace.retiredinsns.map({ unmasked =>
       val masked = WireDefault(unmasked)
       masked.valid := unmasked.valid && !hPort.hBits.tiletrace.reset.asBool
       masked

@@ -6,10 +6,9 @@ import chisel3.util._
 import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.util.DecoupledHelper
 
-import testchipip.cosim.{SerializableTileTraceIO, SpikeCosimConfig, TileTraceIO, TraceBundleWidths}
-
 import midas.widgets._
 import firesim.lib._
+import firesim.compat._
 
 //*************************************************
 //* GOLDEN GATE MODULE

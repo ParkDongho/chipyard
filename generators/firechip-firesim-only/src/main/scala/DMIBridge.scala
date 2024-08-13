@@ -6,7 +6,6 @@ import midas.widgets._
 import chisel3._
 import chisel3.util._
 import org.chipsalliance.cde.config.Parameters
-import freechips.rocketchip.devices.debug.{ClockedDMIIO, DMIReq, DMIResp}
 
 import firesim.lib._
 import firesim.compat._
