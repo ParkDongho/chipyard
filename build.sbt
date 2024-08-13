@@ -330,6 +330,7 @@ lazy val firesimDir = if(firesimAsLibrary) {
   file("sims/firesim-staging/firesim-symlink")
 }
 
+// TODO: AJG: Fix
 // Contains annotations & firrtl passes you may wish to use in rocket-chip without
 // introducing a circular dependency between RC and MIDAS
 // this should be minimally dependent on firesim
@@ -341,14 +342,30 @@ lazy val midas_target_utils = (project in firesimDir / "sim/midas/targetutils")
 lazy val midas_standalone_target_utils = (project in file("tools/midas-targetutils"))
   .settings(commonSettings)
   .settings(chiselSettings)
+// TODO: AJG: ^ Fix
 
+// Provides API for bridges to be created in the target
 lazy val firesim_lib = (project in firesimDir / "sim/firesim-lib")
   .dependsOn(midas_target_utils)
   .settings(commonSettings)
   .settings(chiselSettings)
 
+// TODO: rename... simulation boundary or something like that
+lazy val firechip_isolated = (project in file("generators/firechip-isolated"))
+  .settings(
+    chiselSettings,
+    commonSettings,
+  )
+
+lazy val firechip_firesim_only = (project in file("generators/firechip-firesim-only"))
+  .dependsOn(firechip_isolated)
+  .settings(
+    chiselSettings,
+    commonSettings,
+  )
+
 lazy val firechip = (project in file("generators/firechip"))
-  .dependsOn(chipyard, firesim_lib)
+  .dependsOn(chipyard, firesim_lib, firechip_isolated)
   .settings(
     chiselSettings,
     commonSettings,

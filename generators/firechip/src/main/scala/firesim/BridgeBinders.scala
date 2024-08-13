@@ -145,7 +145,7 @@ class WithCospikeBridge extends HarnessBinder({
 
 class WithSuccessBridge extends HarnessBinder({
   case (th: FireSim, port: SuccessPort, chipId: Int) => {
-    GroundTestBridge(th.harnessBinderClock, port.io)(th.p)
+    GroundTestBridge(th.harnessBinderClock, port.io)
   }
 })
 
