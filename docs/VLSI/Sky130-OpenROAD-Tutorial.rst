@@ -117,9 +117,7 @@ Sky130A PDK 및 SRAM 매크로의 위치를 지정하기 위해 이 파일 상�
 
 .. code-block:: yaml
 
-    # 모든
-
- ~는 이 디렉토리의 절대 경로로 대체되어야 합니다.
+    # 모든 ~는 이 디렉토리의 절대 경로로 대체되어야 합니다.
     # 기술 경로
     technology.sky130.sky130A: ~/.conda-sky130/share/pdk/sky130A
     technology.sky130.sram22_sky130_macros: ~/sram22_sky130_macros
