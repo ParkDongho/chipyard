@@ -1,87 +1,48 @@
 IceNet
 ======
 
-IceNet is a library of Chisel designs related to networking. The main component
-of IceNet is IceNIC, a network interface controller that is used primarily
-in `FireSim <https://fires.im/>`_ for multi-node networked simulation.
-A diagram of IceNet's microarchitecture is shown below.
+IceNet은 네트워킹과 관련된 Chisel 디자인 라이브러리입니다. IceNet의 주요 구성 요소는 주로 `FireSim <https://fires.im/>`_ 에서 멀티 노드 네트워크 시뮬레이션에 사용되는 네트워크 인터페이스 컨트롤러인 IceNIC입니다. IceNet의 마이크로아키텍처 다이어그램은 아래에 표시되어 있습니다.
 
 .. image:: ../_static/images/nic-design.png
 
-There are four basic parts of the NIC: the :ref:`Generators/IceNet:Controller`, which takes requests
-from and sends responses to the CPU; the :ref:`Generators/IceNet:Send Path`, which reads data from
-memory and sends it out to the network; the :ref:`Generators/IceNet:Receive Path`, which receives
-data from the network and writes it to memory; and, optionally,
-the :ref:`Generators/IceNet:Pause Handler`, which generates Ethernet pause frames for the purpose
-of flow control.
+NIC의 기본적인 네 가지 부분은 다음과 같습니다: CPU로부터 요청을 받고 응답을 보내는 :ref:`Generators/IceNet:Controller`, 데이터를 메모리에서 읽어와 네트워크로 보내는 :ref:`Generators/IceNet:Send Path`, 네트워크에서 데이터를 받아 메모리에 쓰는 :ref:`Generators/IceNet:Receive Path`, 그리고 흐름 제어를 위해 이더넷 일시 정지 프레임을 생성하는 선택적 모듈인 :ref:`Generators/IceNet:Pause Handler` 입니다.
 
 Controller
 ----------
 
-The controller exposes a set of MMIO registers to the CPU. The device driver
-writes to registers to request that packets be sent or to provide memory
-locations to write received data to. Upon the completion of a send request or
-packet receive, the controller sends an interrupt to the CPU, which clears
-the completion by reading from another register.
+컨트롤러는 CPU에 MMIO 레지스터 세트를 노출합니다. 디바이스 드라이버는 패킷을 보내거나 수신된 데이터를 쓸 메모리 위치를 제공하기 위해 레지스터에 기록합니다. 전송 요청이 완료되거나 패킷이 수신되면 컨트롤러는 CPU에 인터럽트를 보내며, CPU는 다른 레지스터를 읽어 완료를 확인합니다.
 
 Send Path
 ---------
 
-The send path begins at the reader, which takes requests from the controller
-and reads the data from memory.
+전송 경로는 컨트롤러로부터 요청을 받고 메모리에서 데이터를 읽어오는 리더에서 시작됩니다.
 
-Since TileLink responses can come back out-of-order, we use a reservation
-queue to reorder responses so that the packet data can be sent out in the
-proper order.
+TileLink 응답은 순서대로 돌아오지 않을 수 있으므로, 예약 큐를 사용하여 응답을 재정렬하여 패킷 데이터를 올바른 순서로 전송할 수 있도록 합니다.
 
-The packet data then goes to an arbiter, which can arbitrate access to the
-outbound network interface between the NIC and one or more "tap in" interfaces,
-which come from other hardware modules that may want to send Ethernet packets.
-By default, there are no tap in interfaces, so the arbiter simply passes
-the output of the reservation buffer through.
+패킷 데이터는 아비터로 전달되며, 이 아비터는 NIC와 이더넷 패킷을 전송하려는 다른 하드웨어 모듈 사이에서 아웃바운드 네트워크 인터페이스에 대한 접근을 중재할 수 있습니다. 기본적으로 탭 인 인터페이스가 없으므로, 아비터는 예약 버퍼의 출력을 그대로 전달합니다.
 
 Receive Path
 ------------
 
-The receive path begins with the packet buffer, which buffers data coming
-in from the network. If there is insufficient space in the buffer, it will
-drop data at packet granularity to ensure that the NIC does not deliver
-incomplete packets.
+수신 경로는 네트워크에서 들어오는 데이터를 버퍼링하는 패킷 버퍼에서 시작됩니다. 버퍼에 충분한 공간이 없으면 NIC가 불완전한 패킷을 전달하지 않도록 패킷 단위로 데이터를 삭제합니다.
 
-From the packet buffer, the data can optionally go to a network tap, which
-examines the Ethernet header and select packets to be redirected from the NIC
-to external modules through one or more "tap out" interfaces. By default, there
-are no tap out interfaces, so the data will instead go directly to the writer,
-which writes the data to memory and then sends a completion to the controller.
+패킷 버퍼에서 데이터는 선택적으로 네트워크 탭으로 전달되며, 이 탭은 이더넷 헤더를 검사하고 외부 모듈로부터 NIC로 리다이렉트할 패킷을 선택합니다. 기본적으로 탭 아웃 인터페이스가 없으므로 데이터는 바로 라이터로 전달되며, 라이터는 데이터를 메모리에 기록한 후 컨트롤러에 완료 신호를 보냅니다.
 
 Pause Handler
 -------------
 
-IceNIC can be configured to have pause handler, which sits between the
-send and receive paths and the Ethernet interface. This module tracks the
-occupancy of the receive packet buffer. If it sees the buffer filling up, it
-will send an `Ethernet pause frame <https://en.wikipedia.org/wiki/Ethernet_flow_control#Pause_frame>`_
-out to the network to block further packets from being sent. If the NIC receives
-an Ethernet pause frame, the pause handler will block sending from the NIC.
+IceNIC은 일시 정지 핸들러를 갖춘 상태로 구성할 수 있으며, 이 핸들러는 전송 및 수신 경로와 이더넷 인터페이스 사이에 위치합니다. 이 모듈은 수신 패킷 버퍼의 점유 상태를 추적하며, 버퍼가 가득 차는 것을 감지하면 네트워크로 이더넷 일시 정지 프레임을 보내 더 이상의 패킷 전송을 차단합니다. NIC가 이더넷 일시 정지 프레임을 수신하면, 일시 정지 핸들러는 NIC에서의 전송을 차단합니다.
 
 Linux Driver
 ------------
 
-The default Linux configuration provided by `firesim-software <https://github.com/firesim/firesim-software>`_
-contains an IceNet driver. If you launch a FireSim image that has IceNIC on it,
-the driver will automatically detect the device, and you will be able to use
-the full Linux networking stack in userspace.
+`firesim-software <https://github.com/firesim/firesim-software>`_ 에서 제공하는 기본 Linux 구성에는 IceNet 드라이버가 포함되어 있습니다. IceNIC이 포함된 FireSim 이미지를 실행하면 드라이버가 디바이스를 자동으로 감지하여 사용자 공간에서 전체 Linux 네트워킹 스택을 사용할 수 있습니다.
 
 Configuration
 -------------
 
-To add IceNIC to your design, add ``HasPeripheryIceNIC`` to your lazy module
-and ``HasPeripheryIceNICModuleImp`` to the module implementation. If you
-are confused about the distinction between lazy module and module
-implementation, refer to :ref:`Chipyard-Basics/Configs-Parameters-Mixins:Cake Pattern / Mixin`.
+IceNIC을 설계에 추가하려면, lazy 모듈에 ``HasPeripheryIceNIC`` 을 추가하고 모듈 구현에 ``HasPeripheryIceNICModuleImp`` 를 추가해야 합니다. lazy 모듈과 모듈 구현 간의 차이에 대해 혼란스러우면 :ref:`Chipyard-Basics/Configs-Parameters-Mixins:Cake Pattern / Mixin` 를 참조하십시오.
 
-Then add the ``WithIceNIC`` config fragment to your configuration. This will
-define ``NICKey``, which IceNIC uses to determine its parameters. The config fragment
-takes two arguments. The ``inBufFlits`` argument is the number of 64-bit flits
-that the input packet buffer can hold and the ``usePauser`` argument determines
-whether or not the NIC will have a pause handler.
+그런 다음 ``WithIceNIC`` 구성 조각을 구성에 추가합니다. 이 구성은 IceNIC이 매개변수를 결정하는 데 사용하는 ``NICKey`` 를 정의합니다. 이 구성 조각은 두 개의 인수를 받습니다. ``inBufFlits`` 인수는 입력 패킷 버퍼가 보유할 수 있는 64비트 플릿의 수를 나타내며, ``usePauser`` 인수는 NIC에 일시 정지 핸들러가 있을지 여부를 결정합니다.
+
+

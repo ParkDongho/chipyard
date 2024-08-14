@@ -1,8 +1,9 @@
 Shuttle RISC-V Core
 ===================
 
-Shuttle is a Rocket-based superscalar in-order RISC-V core, supporting the base RV64IMAFDC instruction set with supervisor and user-mode. Shuttle is a 6-stage core that can be configured to be dual, three, or quad-issue, although dual-issue is the most sensible design point. Shuttle is not designed to meet any power, performance, or area targets. It exists purely as a demonstrative example of another RISC-V CPU design point.
+Shuttle은 Rocket 기반의 슈퍼스칼라 인오더 RISC-V 코어로, RV64IMAFDC 기본 명령어 세트와 슈퍼바이저 및 사용자 모드를 지원합니다. Shuttle은 6단계 코어로, 듀얼, 트리플, 쿼드 이슈로 구성할 수 있지만, 듀얼 이슈가 가장 합리적인 설계 지점입니다. Shuttle은 전력, 성능 또는 면적 목표를 충족하도록 설계되지 않았습니다. 순수하게 또 다른 RISC-V CPU 설계 지점의 데모용 예제로 존재합니다.
 
-The superscalar microarchitecture presents the most advantages for 1) floating-point kernels and 2) RoCC accelerator kernels, as scalar control code can execute concurrently with floating point or RoCC instructions, maintaining high utilization of those units.
+슈퍼스칼라 마이크로아키텍처는 1) 부동 소수점 커널과 2) RoCC 가속기 커널에서 가장 큰 이점을 제공합니다. 이는 스칼라 제어 코드가 부동 소수점 또는 RoCC 명령어와 동시에 실행되어 해당 유닛의 높은 활용도를 유지할 수 있기 때문입니다.
 
-Shuttle is tape-out proven, and has similar physical design complexity as Rocket.
+Shuttle은 테이프아웃을 거쳤으며, 물리적 설계 복잡성은 Rocket과 유사합니다.
+

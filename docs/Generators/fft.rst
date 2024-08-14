@@ -1,32 +1,32 @@
 FFT Generator
 ====================================
 
-The FFT generator is a parameterizable fft accelerator.
+FFT 생성기는 매개변수화 가능한 FFT 가속기입니다.
 
 Configuration
 --------------------------
-The following configuration creates an 8-point FFT:
+다음 구성은 8점 FFT를 생성합니다:
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/MMIOAcceleratorConfigs.scala
    :language: scala
    :start-after: DOC include start: FFTRocketConfig
    :end-before: DOC include end: FFTRocketConfig
 
-:code:`baseAddress` specifies the starting address of the FFT's read and write lanes. The FFT write lane is always located at :code:`baseAddress`. There is 1 read lane per output point; since this config specifies an 8-point FFT, there will be 8 read lanes. Read lane :code:`i` (which can be loaded from to retrieve output point :code:`i`) will be located at :code:`baseAddr + 64bits (assuming 64bit system) + (i * 8)`. :code:`baseAddress` should be 64-bit aligned
+:code:`baseAddress` 는 FFT의 읽기 및 쓰기 레인의 시작 주소를 지정합니다. FFT 쓰기 레인은 항상 :code:`baseAddress` 에 위치합니다. 출력 포인트당 1개의 읽기 레인이 있으며, 이 구성은 8점 FFT를 지정하므로 8개의 읽기 레인이 있습니다. 읽기 레인 :code:`i` (출력 포인트 :code:`i` 를 가져오려면)는 :code:`baseAddr + 64비트(64비트 시스템 가정) + (i * 8)` 에 위치합니다. :code:`baseAddress` 는 64비트 정렬이어야 합니다.
 
-:code:`width` is the size of input points in binary. A width of :code:`w` means that each point will have :code:`w` bits for the real component and :code:`w` bits for the imaginary component, yielding a total of `2w` bits per point. :code:`decPt` is the location of the decimal point in the fixed-precision representation of each point's real and imaginary value. In the Config above, each point is `32` bits wide, with `16` bits used to represent the real component and `16` bits used to represent the imaginary component. Within the `16` bits for each component, the `8` LSB are used to represent the decimal component of the value and the remaining (8) MSB are used to represent the integer component. Both the real and imaginary components use a fixed-precision representation.
+:code:`width` 는 입력 포인트의 크기를 이진수로 나타냅니다. :code:`w` 크기의 폭은 각 포인트가 실수 성분에 대해 :code:`w` 비트, 허수 성분에 대해 :code:`w` 비트를 가지며, 포인트당 총 `2w` 비트를 갖는 것을 의미합니다. :code:`decPt`는 각 포인트의 실수 및 허수 값의 고정 소수점 표현에서 소수점의 위치를 나타냅니다. 위의 구성에서 각 포인트는 `32` 비트이며, `16` 비트는 실수 성분을 나타내고, 나머지 `16` 비트는 허수 성분을 나타냅니다. 각 성분의 `16` 비트 중 `8` LSB는 소수 성분을 나타내고, 나머지 `8` MSB는 정수 성분을 나타냅니다. 실수 및 허수 성분은 고정 소수점 표현을 사용합니다.
 
-To build a simulation of this example Chipyard config, run the following commands:
+이 예제 Chipyard 구성을 시뮬레이션하려면 다음 명령을 실행하십시오:
 
 .. code-block:: shell
 
-    cd sims/verilator # or "cd sims/vcs"
+    cd sims/verilator # 또는 "cd sims/vcs"
     make CONFIG=FFTRocketConfig
 
 Usage and Testing
 --------------------------
 
-Points are passed into the FFT via the single write lane. In C pseudocode, this might look like:
+포인트는 단일 쓰기 레인을 통해 FFT로 전달됩니다. C 의사 코드에서 이것은 다음과 같이 보일 수 있습니다:
 
 .. code-block:: C
 
@@ -37,23 +37,23 @@ Points are passed into the FFT via the single write lane. In C pseudocode, this 
         *ptr = write_val;
     }
 
-Once the correct number of inputs are passed in (in the config above, 8 values would be passed in), the read lanes can be read from (again in C pseudocode):
+입력 값의 정확한 수가 전달되면(위의 구성에서는 8개의 값이 전달됩니다), 읽기 레인에서 값을 읽을 수 있습니다(C 의사 코드):
 
 .. code-block:: C
 
     for (int i = 0; i < num_points; i++) {
-        // FFT_RD_LANE_BASE = baseAddress + 64bits (for write lane)
+        // FFT_RD_LANE_BASE = baseAddress + 64비트(쓰기 레인용)
         volatile uint32_t* ptr_0 = (volatile uint32_t*) (FFT_RD_LANE_BASE + (i * 8));
         uint32_t read_val = *ptr_0;
     }
 
-The :code:`fft.c` test file in the :code:`tests/` directory can be used to verify the fft's functionality on an SoC built with :code:`FFTRocketConfig`.
+:code:`tests/` 디렉토리의 :code:`fft.c` 테스트 파일을 사용하여 :code:`FFTRocketConfig` 로 빌드된 SoC에서 FFT의 기능을 확인할 수 있습니다.
 
 Acknowledgements
 --------------------------
-The code for the FFT Generator was adapted from the ADEPT Lab at UC Berkeley's `Hydra Spine <https://adept.eecs.berkeley.edu/projects/hydra-spine/>`_ project.
+FFT 생성기 코드는 UC Berkeley의 ADEPT Lab에서 제공한 `Hydra Spine <https://adept.eecs.berkeley.edu/projects/hydra-spine/>`_ 프로젝트에서 수정되었습니다.
 
-Authors for the original project (in no particular order):
+원래 프로젝트의 저자(특정 순서 없음):
 
 * James Dunn, UC Berkeley (dunn [at] eecs [dot] berkeley [dot] edu)
    * :code:`Deserialize.scala`

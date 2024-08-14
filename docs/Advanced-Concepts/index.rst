@@ -1,8 +1,8 @@
 Advanced Concepts
 ================================
 
-The following sections are advanced topics about how to Chipyard works, how to use Chipyard, and special features of the framework.
-They expect you to know about Chisel, Parameters, configs, etc.
+다음 섹션들은 Chipyard의 동작 방식, 사용법, 그리고 프레임워크의 특별한 기능들에 대한 고급 주제를 다룹니다.
+이 섹션들은 Chisel, Parameters, configs 등에 대한 사전 지식이 필요합니다.
 
 .. toctree::
    :maxdepth: 2
@@ -16,3 +16,4 @@ They expect you to know about Chisel, Parameters, configs, etc.
    Harness-Clocks
    Managing-Published-Scala-Dependencies
    Architectural-Checkpoints
+

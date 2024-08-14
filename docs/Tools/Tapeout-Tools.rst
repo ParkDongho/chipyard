@@ -1,137 +1,136 @@
 Tapeout-Tools
 ===============================
 
-Tapeout-Tools is a collection of useful FIRRTL transformations and compilers to help the build process.
-Included in the tools are a MacroCompiler (used to map Chisel memory constructs to vendor SRAMs), FIRRTL transforms (to separate harness and top-level SoC files), and more.
+Tapeout-Tools는 빌드 프로세스를 돕기 위한 유용한 FIRRTL 변환 및 컴파일러 모음입니다.
+이 도구에는 MacroCompiler(Chisel 메모리 구조를 공급업체의 SRAM으로 매핑하는 데 사용됨), FIRRTL 변환(테스트 하네스와 상위 수준 SoC 파일을 분리하는 데 사용됨) 등이 포함되어 있습니다.
 
 Mapping technology SRAMs (MacroCompiler)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are planning on building a real chip, it is likely that you will plan on using some amount of static random access memory, or SRAM.
-SRAM macros offer superior storage density over flip-flop arrays at the cost of restricting the number of read or write transactions that can happen in a cycle.
-Unlike in Verilog, these types of sequential memory elements are first-class primitives in Chisel and FIRRTL (``SeqMem`` elements).
-This allows Chisel designs to contain abstract instantiations of sequential memory elements without knowing the underlying implementation or process technology.
+실제 칩을 제작할 계획이라면, 정적 랜덤 액세스 메모리(SRAM)를 일정량 사용할 계획일 것입니다.
+SRAM 매크로는 사이클당 읽기 또는 쓰기 거래 횟수를 제한하는 대가로 플립플롭 배열보다 우수한 저장 밀도를 제공합니다.
+Verilog와 달리, 이러한 유형의 순차 메모리 요소는 Chisel 및 FIRRTL에서 일급 기본 요소(``SeqMem`` 요소)입니다.
+이로 인해 Chisel 설계는 하위 구현이나 공정 기술을 알지 못한 상태에서 추상적인 순차 메모리 요소의 인스턴스를 포함할 수 있습니다.
 
-Modern CAD tools typically cannot synthesize SRAMs from a high-level RTL description.
-This, unfortunately, requires the designer to include the SRAM instantiation in the source RTL, which removes its process portability.
-In Verilog-entry designs, it is possible to create a layer of abstraction that allows a new process technology to implement a specific sequential memory block in a wrapper module.
-However, this method can be fragile and laborious.
+현대 CAD 도구는 일반적으로 고급 RTL 설명에서 SRAM을 합성할 수 없습니다.
+이는 설계자가 소스 RTL에 SRAM 인스턴스를 포함하도록 요구하게 되어 공정 간 이식성이 사라지게 됩니다.
+Verilog 입력 설계에서는 래퍼 모듈에서 특정 순차 메모리 블록을 구현할 수 있는 새로운 공정 기술을 허용하는 추상화 계층을 생성할 수 있습니다.
+그러나 이 방법은 취약하고 번거로울 수 있습니다.
 
-The FIRRTL compiler contains a transformation to replace the ``SeqMem`` primitives called ``ReplSeqMem``.
-This simply converts all ``SeqMem`` instances above a size threshold into external module references.
-An external module reference is a FIRRTL construct that enables a design to reference a module without describing its contents, only its inputs and outputs.
-A list of unique SRAM configurations is output to a ``.conf`` file by FIRRTL, which is used to map technology SRAMs.
-Without this transform, FIRRTL will map all ``SeqMem`` s to flip-flop arrays with equivalent behavior, which may lead to a design that is difficult to route.
+FIRRTL 컴파일러에는 ``SeqMem`` 기본 요소를 대체하는 변환인 ``ReplSeqMem`` 이 포함되어 있습니다.
+이 변환은 모든 ``SeqMem`` 인스턴스를 외부 모듈 참조로 변환합니다.
+외부 모듈 참조는 디자인이 모듈의 내용을 설명하지 않고 입력과 출력만을 참조할 수 있게 하는 FIRRTL 구성입니다.
+고유한 SRAM 구성 목록은 FIRRTL에 의해 ``.conf`` 파일로 출력되며, 이는 기술 SRAM을 매핑하는 데 사용됩니다.
+이 변환이 없으면 FIRRTL은 모든 ``SeqMem`` 을 동일한 동작을 가진 플립플롭 배열로 매핑하게 되며, 이는 라우팅하기 어려운 설계를 초래할 수 있습니다.
 
-The ``.conf`` file is consumed by a tool called MacroCompiler, which is part of the :ref:`Tools/Tapeout-Tools:Tapeout-Tools` scala package.
-MacroCompiler is also passed an ``.mdf`` file that describes the available list of technology SRAMs or the capabilities of the SRAM compiler, if one is provided by the foundry.
-Typically a foundry SRAM compiler will be able to generate a set of different SRAMs collateral based on some requirements on size, aspect ratio, etc. (see :ref:`Tools/Tapeout-Tools:SRAM MDF Fields`).
-Using a user-customizable cost function, MacroCompiler will select the SRAMs that are the best fit for each dimensionality in the ``.conf`` file.
-This may include over provisioning (e.g. using a 64x1024 SRAM for a requested 60x1024, if the latter is not available) or arraying.
-Arraying can be done in both width and depth, as well as to solve masking constraints.
-For example, a 128x2048 array could be composed of four 64x1024 arrays, with two macros in parallel to create two 128x1024 virtual SRAMs which are combinationally muxed to add depth.
-If this macro requires byte-granularity write masking, but no technology SRAMs support masking, then the tool may choose to use thirty-two 8x1024 arrays in a similar configuration.
-You may wish to create a cache of your available SRAM macros either manually, or via a script. A reference script for creating a JSON of your SRAM macros is in the `asap7 technology library folder <https://github.com/ucb-bar/hammer/blob/8fd1486499b875d56f09b060f03a62775f0a6aa7/src/hammer-vlsi/technology/asap7/sram-cache-gen.py>`__.
-For information on writing ``.mdf`` files, look at `MDF on github <https://github.com/ucb-bar/plsi-mdf>`__ and a brief description in :ref:`Tools/Tapeout-Tools:SRAM MDF Fields` section.
+``.conf`` 파일은 :ref:`Tools/Tapeout-Tools:Tapeout-Tools` 스칼라 패키지의 일부인 MacroCompiler라는 도구에 의해 사용됩니다.
+MacroCompiler는 공급업체에서 제공한 경우 사용 가능한 기술 SRAM 또는 SRAM 컴파일러의 기능을 설명하는 ``.mdf`` 파일도 전달받습니다.
+일반적으로 파운드리 SRAM 컴파일러는 크기, 종횡비 등의 요구 사항에 따라 다양한 SRAM collateral을 생성할 수 있습니다(자세한 내용은 :ref:`Tools/Tapeout-Tools:SRAM MDF Fields` 참조).
+사용자 정의 비용 함수(cost function)를 사용하여, MacroCompiler는 ``.conf`` 파일의 각 차원에 가장 적합한 SRAM을 선택합니다.
+여기에는 과잉 할당(예: 요청된 60x1024가 사용 가능하지 않은 경우 64x1024 SRAM 사용) 또는 배열화가 포함될 수 있습니다.
+배열화는 폭과 깊이 모두에서 수행할 수 있으며, 마스킹 제약을 해결하는 데 사용될 수 있습니다.
+예를 들어, 128x2048 배열은 네 개의 64x1024 배열로 구성될 수 있으며, 두 개의 매크로를 병렬로 배치하여 깊이를 추가하기 위해 두 개의 128x1024 가상 SRAM을 결합할 수 있습니다.
+이 매크로가 바이트 단위 쓰기 마스킹을 요구하지만 기술 SRAM이 마스킹을 지원하지 않는 경우, 도구는 유사한 구성을 사용하여 32개의 8x1024 배열을 사용할 수 있습니다.
+사용 가능한 SRAM 매크로의 캐시를 수동으로 또는 스크립트를 통해 생성하는 것이 좋습니다. SRAM 매크로의 JSON을 생성하는 참조 스크립트는 `asap7 기술 라이브러리 폴더 <https://github.com/ucb-bar/hammer/blob/8fd1486499b875d56f09b060f03a62775f0a6aa7/src/hammer-vlsi/technology/asap7/sram-cache-gen.py>`__ 에 있습니다.
+``.mdf`` 파일 작성에 대한 정보는 `github의 MDF <https://github.com/ucb-bar/plsi-mdf>`__ 및 :ref:`Tools/Tapeout-Tools:SRAM MDF Fields` 섹션의 간략한 설명을 참조하십시오.
 
-The output of MacroCompiler is a Verilog file containing modules that wrap the technology SRAMs into the specified interface names from the ``.conf``.
-If the technology supports an SRAM compiler, then MacroCompiler will also emit HammerIR that can be passed to Hammer to run the compiler itself and generate design collateral.
-Documentation for SRAM compilers is forthcoming.
+MacroCompiler의 출력물은 ``.conf`` 에서 지정된 인터페이스 이름으로 기술 SRAM을 래핑하는 모듈을 포함하는 Verilog 파일입니다.
+기술이 SRAM 컴파일러를 지원하는 경우, MacroCompiler는 또한 Hammer에 전달되어 자체적으로 컴파일러를 실행하고 설계 collateral을 생성할 수 있는 HammerIR도 생성합니다.
+SRAM 컴파일러에 대한 문서는 곧 제공될 예정입니다.
 
 MacroCompiler Options
 +++++++++++++++++++++
-MacroCompiler accepts many command-line parameters which affect how it maps ``SeqMem`` s to technology specific macros.
-This highest level option ``--mode`` specifies in general how MacroCompiler should map the input ``SeqMem`` s to technology macros.
-The ``strict`` value forces MacroCompiler to map all memories to technology macros and error if it is unable to do so.
-The ``synflops`` value forces MacroCompiler to map all memories to flip flops.
-The ``compileandsynflops`` value instructs MacroCompiler to use the technology compiler to determine sizes of technology macros used but to then create mock versions of these macros with flip flops.
-The ``fallbacksynflops`` value causes MacroCompiler to compile all possible memories to technology macros but when unable to do so to use flip flops to implement the remaining memories.
-The final and default value, ``compileavailable``, instructs MacroCompiler to compile all memories to the technology macros and do nothing if it is unable to map them.
+MacroCompiler는 ``SeqMem`` 을 기술에 특정한 매크로로 매핑하는 방법에 영향을 미치는 많은 명령줄 매개변수를 허용합니다.
+가장 상위 레벨 옵션인 ``--mode`` 는 일반적으로 MacroCompiler가 입력된 ``SeqMem`` 을 기술 매크로로 매핑하는 방법을 지정합니다.
+``strict`` 값은 MacroCompiler가 모든 메모리를 기술 매크로로 매핑하고 이를 수행할 수 없는 경우 오류를 발생시키도록 강제합니다.
+``synflops`` 값은 MacroCompiler가 모든 메모리를 플립플롭으로 매핑하도록 강제합니다.
+``compileandsynflops`` 값은 MacroCompiler에게 기술 컴파일러를 사용하여 사용된 기술 매크로의 크기를 결정하도록 한 다음, 이 매크로의 모형 버전을 플립플롭으로 생성하도록 지시합니다.
+``fallbacksynflops`` 값은 MacroCompiler에게 가능한 모든 메모리를 기술 매크로로 컴파일하되, 이를 수행할 수 없는 경우 나머지 메모리를 플립플롭으로 구현하도록 지시합니다.
+최종이자 기본 값인 ``compileavailable`` 은 MacroCompiler에게 모든 메모리를 기술 매크로로 컴파일하고 이를 매핑할 수 없는 경우 아무 작업도 하지 않도록 지시합니다.
 
-Most of the rest of the options are used to control where different inputs and outputs are expected and produced.
-The option ``--macro-conf`` is the file that contains the set of input ``SeqMem`` configurations to map in the ``.conf`` format described above.
-The option ``--macro-mdf`` also describes the input ``SeqMem`` s but is instead in the ``.mdf`` format.
-The option ``--library`` is an ``.mdf`` description of the available technology macros that can be mapped to.
-This file could be a list of fixed size memories often referred to as a cache of macros, or a description of what size memories could be made available through some technology specific process (usually an SRAM compiler), or a mix of both.
-The option ``--use-compiler`` instructs MacroCompiler that it is allowed to use any compilers listed in the ``--library`` specification.
-If this option is not set MacroCompiler will only map to macros directly listed in the ``--library`` specification.
-The ``--verilog`` option specifies where MacroCompiler will write the verilog containing the new technology mapped memories.
-The ``--firrtl`` option similarly specifies where MacroCompiler will write the FIRRTL that will be used to generate this verilog.
-This option is optional and no FIRRTL will be emitted if it is not specified.
-The ``--hammer-ir`` option specifies where MacroCompiler will write the details of which macros need to be generated from a technology compiler.
-This option is not needed if ``--use-compiler`` is not specified.
-This file can then be passed to HAMMER to have it run the technology compiler producing the associated macro collateral.
-The ``--cost-func`` option allows the user to specify a different cost function for the mapping task.
-Because the mapping of memories is a multi-dimensional space spanning performance, power, and area, the cost function setting of MacroCompiler allows the user to tune the mapping to their preference.
-The default option is a reasonable heuristic that attempts to minimize the number of technology macros instantiated per ``SeqMem`` without wasting too many memory bits.
-There are two ways to add additional cost functions.
-First, you can simply write another one in scala and call `registerCostMetric` which then enables you to pass its name to this command-line flag.
-Second, there is a pre-defined `ExternalMetric` which will execute a program (passed in as a path) with the MDF description of the memory being compiled and the memory being proposed as a mapping.
-The program should print a floating point number which is the cost for this mapping, if no number is printed MacroCompiler will assume this is an illegal mapping.
-The ``--cost-param`` option allows the user to specify parameters to pass to the cost function if the cost function supports that.
-The ``--force-synflops [mem]`` options allows the user to override any heuristics in MacroCompiler and force it to map the given memory to flip-flops.
-Likewise, the ``--force-compile [mem]`` option allows the user to force MacroCompiler to map the given ``mem`` to a technology macro.
+나머지 옵션 대부분은 다른 입력과 출력이 예상되는 위치를 제어하는 데 사용됩니다.
+옵션 ``--macro-conf`` 는 위에서 설명한 ``.conf`` 형식으로 매핑할 입력 ``SeqMem`` 구성 세트를 포함하는 파일입니다.
+옵션 ``--macro-mdf`` 도 입력 ``SeqMem`` 을 설명하지만, 대신 ``.mdf`` 형식으로 되어 있습니다.
+옵션 ``--library`` 는 매핑할 수 있는 사용 가능한 기술 매크로에 대한 ``.mdf`` 설명입니다.
+이 파일은 종종 매크로 캐시라고 하는 고정 크기 메모리 목록이거나, 기술별 공정을 통해 사용할 수 있는 메모리 크기에 대한 설명(일반적으로 SRAM 컴파일러), 또는 이 둘의 혼합일 수 있습니다.
+옵션 ``--use-compiler`` 는 MacroCompiler가 ``--library`` 사양에 나열된 모든 컴파일러를 사용할 수 있음을 지시합니다.
+이 옵션이 설정되지 않으면 MacroCompiler는 ``--library`` 사양에 직접 나열된 매크로만 매핑합니다.
+옵션 ``--verilog`` 는 MacroCompiler가 새로운 기술 매핑된 메모리를 포함하는 Verilog를 작성할 위치를 지정합니다.
+옵션 ``--firrtl`` 도 마찬가지로, MacroCompiler가 이 Verilog를 생성하는 데 사용될 FIRRTL을 작성할 위치를 지정합니다.
+이 옵션은 선택 사항이며 지정하지 않으면 FIRRTL이 출력되지 않습니다.
+옵션 ``--hammer-ir`` 는 MacroCompiler가 기술 컴파일러에서 생성해야 하는 매크로의 세부 정보를 작성할 위치를 지정합니다.
+이 옵션은 ``--use-compiler`` 가 지정되지 않은 경우 필요하지 않습니다.
+이 파일은 HAMMER에 전달되어 기술 컴파일러를 실행하고 관련 매크로 collateral을 생성하는 데 사용할 수 있습니다.
+옵션 ``--cost-func`` 는 사용자가 매핑 작업을 위한 다른 비용 함수를 지정할 수 있도록 합니다.
+메모리 매핑은 성능, 전력, 면적을 아우르는 다차원 공간이기 때문에, MacroCompiler의 비용 함수 설정을 통해 사용자가 매핑을 선호하는 대로 조정할 수 있습니다.
+기본 옵션은 ``SeqMem`` 당 인스턴스화된 기술 매크로 수를 최소화하면서 메모리 비트를 낭비하지 않도록 하는 합리적인 휴리스틱입니다.
+추가 비용 함수를 추가하는 방법은 두 가지가 있습니다.
+첫째, 스칼라에서 다른 함수를 작성하고 이를 ``registerCostMetric``에 호출하여 이 명령줄 플래그에 이름을 전달할 수 있습니다.
+둘째, 미리 정의된 `ExternalMetric` 이 있으며, 이 메트릭은 MDF 메모리 설명 및 매핑으로 제안된 메모리와 함께 프로그램(경로로 전달된)을 실행합니다.
+프로그램은 이 매핑의 비용을 나타내는 부동 소수점 숫자를 출력해야 하며, 숫자가 출력되지 않으면 MacroCompiler는 이를 불법 매핑으로 간주합니다.
+옵션 ``--cost-param`` 은 비용 함수가 이를 지원하는 경우 사용자가 비용 함수에 전달할 매개변수를 지정할 수 있도록 합니다.
+옵션 ``--force-synflops [mem]`` 은 사용자가 MacroCompiler의 모든 휴리스틱을 무시하고 지정된 메모리를 플립플롭으로 매핑하도록 강제할 수 있도록 합니다.
+마찬가지로, 옵션 ``--force-compile [mem]`` 은 사용자가 MacroCompiler에게 지정된 ``mem`` 을 기술 매크로로 매핑하도록 강제할 수 있도록 합니다.
 
 SRAM MDF Fields
 +++++++++++++++
-Technology SRAM macros described in MDF can be defined at three levels of detail.
-A single instance can be defined with the `SRAMMacro` format.
-A group of instances that share the number and type of ports but vary in width and depth can be defined with the `SRAMGroup` format.
-A set of groups of SRAMs that can be generated together from a single source like a compiler can be defined with the `SRAMCompiler` format.
+MDF에서 기술 SRAM 매크로는 세 가지 수준의 세부 정보로 정의될 수 있습니다.
+단일 인스턴스는 `SRAMMacro` 형식으로 정의할 수 있습니다.
+포트의 수와 유형이 동일하지만 폭과 깊이가 다른 인스턴스 그룹은 `SRAMGroup` 형식으로 정의할 수 있습니다.
+단일 소스(예: 컴파일러)에서 함께 생성할 수 있는 SRAM 그룹 세트는 `SRAMCompiler` 형식으로 정의할 수 있습니다.
 
-At the most concrete level the `SRAMMAcro` defines a particular instance of an SRAM.
-That includes its functional attributes such as its width, depth, and number of access ports.
-These ports can be read, write, or read and write ports, and the instance can have any number.
-In order to correctly map these functional ports to the physical instance, each port is described in a list of sub-structures, in the parent instance's structure.
-Each port is only required to have an address and data field, but can have many other optional fields.
-These optional fields include a clock, write enable, read enable, chip enable, mask and its granularity.
-The mask field can have a different granularity than the data field, e.g. it could be a bit mask or a byte mask.
-Each field must also specify its polarity, whether it is active high or active low.
+가장 구체적인 수준에서 `SRAMMacro` 는 SRAM의 특정 인스턴스를 정의합니다.
+여기에는 폭, 깊이 및 액세스 포트 수와 같은 기능적 속성이 포함됩니다.
+이 포트들은 읽기, 쓰기, 또는 읽기 및 쓰기 포트일 수 있으며, 인스턴스는 임의의 수의 포트를 가질 수 있습니다.
+이 기능적 포트를 물리적 인스턴스에 올바르게 매핑하기 위해, 각 포트는 상위 인스턴스의 구조 내에 하위 구조 목록으로 설명됩니다.
+각 포트는 주소 및 데이터 필드만 필요하지만, 많은 다른 선택적 필드를 가질 수 있습니다.
+이 선택적 필드에는 클록, 쓰기 활성화, 읽기 활성화, 칩 활성화, 마스크 및 그 세분성이 포함될 수 있습니다.
+마스크 필드는 데이터 필드와 다른 세분성을 가질 수 있습니다. 예를 들어, 비트 마스크 또는 바이트 마스크일 수 있습니다.
+각 필드는 또한 그 극성, 즉 활성 높은지 활성 낮은지를 지정해야 합니다.
 
-The specific JSON file format described above is `here <https://github.com/ucb-bar/plsi-mdf/blob/4be9b173647c77f990a542f4eb5f69af01d77316/macro_format.json>`_. A reference cache of SRAMs from the nangate45 technology library is `available here <https://github.com/ucb-bar/hammer/blob/8fd1486499b875d56f09b060f03a62775f0a6aa7/src/hammer-vlsi/technology/nangate45/sram-cache.json>`_.
+위에서 설명한 특정 JSON 파일 형식은 `여기 <https://github.com/ucb-bar/plsi-mdf/blob/4be9b173647c77f990a542f4eb5f69af01d77316/macro_format.json>`_ . Nangate45 기술 라이브러리에서의 SRAM 캐시 참조는 `여기서 사용할 수 있습니다 <https://github.com/ucb-bar/hammer/blob/8fd1486499b875d56f09b060f03a62775f0a6aa7/src/hammer-vlsi/technology/nangate45/sram-cache.json>`_ .
 
-In addition to these functional descriptions of the SRAM there are also other fields that specify physical/implementation characteristics.
-These include the threshold voltage, the mux factor, as well as a list of extra non-functional ports.
+SRAM의 기능적 설명 외에도 물리적/구현 특성을 지정하는 다른 필드도 있습니다.
+이러한 필드에는 임계 전압, 멀티플렉서 팩터, 추가적인 비기능적 포트 목록이 포함됩니다.
 
-The next level of detail, an `SRAMGroup` includes a range of depths and widths, as well as a set of threshold voltages.
-A range has a lower bound, upper bound, and a step size.
-The least concrete level, an `SRAMCompiler` is simply a set of `SRAMGroups`.
+다음 수준의 세부 사항인 `SRAMGroup` 은 깊이와 폭의 범위, 그리고 임계 전압 세트를 포함합니다.
+범위에는 하한, 상한 및 단계 크기가 있습니다.
+가장 추상적인 수준인 `SRAMCompiler` 는 단순히 `SRAMGroup` 의 세트입니다.
 
 Separating the Top module from the TestHarness module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Unlike the FireSim and Software simulation flows, a VLSI flow needs to separate the test harness and the chip (a.k.a. DUT) into separate files.
-This is necessary to facilitate post-synthesis and post-place-and-route simulation, as the module names in the RTL and gate-level verilog files would collide.
-Simulations, after your design goes through a VLSI flow, will use the verilog netlist generated from the flow and will need an untouched test harness to drive it.
-Separating these components into separate files makes this straightforward.
-Without the separation the file that included the test harness would also redefine the DUT which is often disallowed in simulation tools.
-To do this, there is a FIRRTL ``App`` in :ref:`Tools/Tapeout-Tools:Tapeout-Tools` called ``GenerateTopAndHarness``, which runs the appropriate transforms to elaborate the modules separately.
-This also renames modules in the test harness so that any modules that are instantiated in both the test harness and the chip are uniquified.
+FireSim 및 소프트웨어 시뮬레이션 흐름과 달리, VLSI 흐름에서는 테스트 하네스와 칩(DUT)을 별도의 파일로 분리해야 합니다.
+이는 RTL 및 게이트 수준의 Verilog 파일에서 모듈 이름이 충돌할 수 있기 때문에, 합성 후 및 배치 및 라우팅 후 시뮬레이션을 용이하게 하기 위해 필요합니다.
+VLSI 흐름을 거친 후의 설계 시뮬레이션은 흐름에서 생성된 Verilog netlist를 사용하며, 이를 구동하기 위해 수정되지 않은 테스트 하네스가 필요합니다.
+이 구성 요소들을 별도의 파일로 분리하면 이 작업이 간단해집니다.
+분리가 이루어지지 않으면 테스트 하네스를 포함하는 파일이 DUT를 다시 정의하게 되어 시뮬레이션 도구에서 종종 허용되지 않습니다.
+이를 위해, :ref:`Tools/Tapeout-Tools:Tapeout-Tools` 에서 적절한 변환을 실행하여 모듈을 별도로 확장하는 ``GenerateTopAndHarness`` 라는 FIRRTL ``App`` 이 있습니다.
+이 또한 테스트 하네스에서 모듈을 고유화하기 위해 모듈 이름을 변경합니다.
 
-.. Note:: For VLSI projects, this ``App`` is run instead of the normal FIRRTL ``App`` to elaborate Verilog.
+.. Note:: VLSI 프로젝트의 경우, 이 ``App`` 은 Verilog를 확장하기 위해 일반적인 FIRRTL ``App`` 대신 실행됩니다.
 
 Macro Description Format
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The SRAM technology macros and IO cells are described in a json format called Macro Description Format (MDF).
-MDF is specialized for each type of macro it supports.
-The specialization is defined in their respective sections.
-
-
+SRAM 기술 매크로 및 IO 셀은 Macro Description Format(MDF)이라는 JSON 형식으로 설명됩니다.
+MDF는 지원하는 각 매크로 유형에 맞게 특수화되어 있습니다.
+특수화는 해당 섹션에서 정의됩니다.
 
 Mapping technology IO cells
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Like technology SRAMs, IO cells are almost always included in digital ASIC designs to allow pin configurability, increase the voltage level of the IO signal, and provide ESD protection.
-Unlike SRAMs, there is no corresponding primitive in Chisel or FIRRTL.
-However, this problem can be solved similarly to ``SeqMems`` by leveraging the strong typing available in these scala-based tools.
-We are actively developing a FIRRTL transform that will automatically configure, map, and connect technology IO cells.
-Stay tuned for more information!
+기술 SRAM과 마찬가지로 IO 셀은 핀 구성 가능성, IO 신호의 전압 수준 증가, ESD 보호를 제공하기 위해 디지털 ASIC 설계에 거의 항상 포함됩니다.
+SRAM과 달리, Chisel 또는 FIRRTL에 해당 기본 요소가 없습니다.
+그러나 이 문제는 이러한 스칼라 기반 도구에서 강력한 타이핑을 활용하여 ``SeqMems`` 와 유사하게 해결할 수 있습니다.
+우리는 기술 IO 셀을 자동으로 구성, 매핑 및 연결하는 FIRRTL 변환을 적극적으로 개발 중입니다.
+더 많은 정보는 곧 제공될 예정입니다!
 
-In the meantime, it is recommended that you instantiate the IO cells in your Chisel design.
-This, unfortunately, breaks the process-agnostic RTL abstraction, so it is recommended that inclusion of these cells be configurable using the ``rocket-chip`` parameterization system.
-The simplest way to do this is to have a config fragment that when included updates instantiates the IO cells and connects them in the test harness.
-When simulating chip-specific designs, it is important to include the IO cells.
-The IO cell behavioral models will often assert if they are connected incorrectly, which is a useful runtime check.
-They also keep the IO interface at the chip and test harness boundary (see :ref:`Tools/Tapeout-Tools:Separating the Top module from the TestHarness module`) consistent after synthesis and place-and-route,
-which allows the RTL simulation test harness to be reused.
+그동안 Chisel 설계에서 IO 셀을 인스턴스화할 것을 권장합니다.
+이는 공정 비종속적인 RTL 추상화를 깨뜨리기 때문에, 이러한 셀의 포함은 ``rocket-chip`` 매개변수화 시스템을 사용하여 구성 가능하도록 하는 것이 좋습니다.
+이 작업을 수행하는 가장 간단한 방법은 포함될 때 IO 셀을 인스턴스화하고 테스트 하네스에서 이를 연결하는 구성 조각을 갖는 것입니다.
+칩 특정 설계를 시뮬레이션할 때 IO 셀을 포함하는 것이 중요합니다.
+IO 셀의 동작 모델은 잘못 연결된 경우 자주 assert를 발생시키며, 이는 유용한 런타임 검사입니다.
+또한 합성과 배치 및 라우팅 후에도 칩과 테스트 하네스 경계의 IO 인터페이스를 일관되게 유지하여, RTL 시뮬레이션 테스트 하네스를 재사용할 수 있습니다.
+(참조 :ref:`Tools/Tapeout-Tools:Separating the Top module from the TestHarness module`).
+

@@ -1,38 +1,27 @@
 Diplomacy Connectors
 ====================
 
-Nodes in a Diplomacy graph are connected to each other with edges. The Diplomacy
-library provides four operators that can be used to form edges between nodes.
+Diplomacy 그래프에서 노드는 엣지로 서로 연결됩니다. Diplomacy 라이브러리는 노드 간에 엣지를 형성하는 데 사용할 수 있는 네 가지 연산자를 제공합니다.
 
 :=
 --
 
-This is the basic connection operator. It is the same syntax as the Chisel
-uni-directional connector, but it is not equivalent. This operator connects
-Diplomacy nodes, not Chisel bundles.
+이것이 기본 연결 연산자입니다. 이는 Chisel 단방향 연결자와 동일한 구문을 가지고 있지만, 동등하지는 않습니다. 이 연산자는 Chisel 번들이 아닌 Diplomacy 노드를 연결합니다.
 
-The basic connection operator always creates a single edge between the two
-nodes.
+기본 연결 연산자는 항상 두 노드 간에 단일 엣지를 생성합니다.
 
 :=\*
 ----
 
-This is a "query" type connection operator. It can create multiple edges
-between nodes, with the number of edges determined by the client node
-(the node on the right side of the operator). This can be useful if you
-are connecting a multi-edge client to a nexus node or adapter node.
+이것은 "query" 유형의 연결 연산자입니다. 노드 간에 여러 엣지를 생성할 수 있으며, 엣지의 수는 클라이언트 노드(연산자 오른쪽에 있는 노드)에 의해 결정됩니다. 이는 다중 엣지 클라이언트를 넥서스 노드 또는 어댑터 노드에 연결할 때 유용할 수 있습니다.
 
 :\*=
 ----
 
-This is a "star" type connection operator. It also creates multiple edges,
-but the number of edges is determined by the manager (left side of operator),
-rather than the client. It's useful for connecting nexus nodes to multi-edge
-manager nodes.
+이것은 "star" 유형의 연결 연산자입니다. 이 연산자도 여러 엣지를 생성하지만, 엣지의 수는 클라이언트가 아닌 관리자(연산자 왼쪽에 있는 노드)에 의해 결정됩니다. 이는 넥서스 노드를 다중 엣지 관리자 노드에 연결하는 데 유용합니다.
 
 :\*=\*
 ------
 
-This is a "flex" connection operator. It creates multiple edges based on
-whichever side of the operator has a known number of edges. This can be used
-in generators where the type of node on either side isn't known until runtime.
+이것은 "flex" 연결 연산자입니다. 연산자의 어느 쪽이든 엣지 수가 알려진 쪽을 기준으로 여러 엣지를 생성합니다. 이는 어느 쪽의 노드 유형이 런타임까지 알려지지 않는 생성기에서 사용할 수 있습니다.
+

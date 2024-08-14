@@ -3,25 +3,26 @@
 RoCC vs MMIO
 ------------
 
-Accelerators or custom IO devices can be added to your SoC in several ways:
+가속기 또는 사용자 정의 IO 장치는 SoC에 여러 가지 방법으로 추가할 수 있습니다:
 
-* MMIO Peripheral (a.k.a TileLink-Attached Accelerator)
+* MMIO 주변 장치(일명 TileLink-Attached Accelerator)
 * Tightly-Coupled RoCC Accelerator
 
-These approaches differ in the method of the communication between the processor and the custom block.
+이 접근 방식들은 프로세서와 사용자 정의 블록 간의 통신 방법에서 차이가 있습니다.
 
-With the TileLink-Attached approach, the processor communicates with MMIO peripherals through memory-mapped registers.
+TileLink-Attached 접근 방식에서는 프로세서가 메모리 맵 레지스터를 통해 MMIO 주변 장치와 통신합니다.
 
-In contrast, the processor communicates with a RoCC accelerators through a custom protocol and custom non-standard ISA instructions reserved in the RISC-V ISA encoding space.
-Each core can have up to four accelerators that are controlled by custom instructions and share resources with the CPU.
-RoCC coprocessor instructions have the following form.
+반대로, 프로세서는 RoCC 가속기와 RISC-V ISA 인코딩 공간에 예약된 사용자 정의 프로토콜과 사용자 정의 비표준 ISA 명령어를 통해 통신합니다.
+각 코어는 최대 네 개의 가속기를 사용자 정의 명령어로 제어할 수 있으며, CPU와 자원을 공유합니다.
+RoCC 코프로세서 명령어는 다음과 같은 형식을 가집니다.
 
 .. code-block:: none
 
     customX rd, rs1, rs2, funct
 
-The X will be a number 0-3, and determines the opcode of the instruction, which controls which accelerator an instruction will be routed to.
-The ``rd``, ``rs1``, and ``rs2`` fields are the register numbers of the destination register and two source registers.
-The ``funct`` field is a 7-bit integer that the accelerator can use to distinguish different instructions from each other.
+여기서 X는 0-3 사이의 숫자로, 명령어의 opcode를 결정하며, 어떤 가속기로 명령어가 라우팅될지를 제어합니다.
+``rd``, ``rs1``, ``rs2`` 필드는 목적지 레지스터와 두 개의 소스 레지스터의 레지스터 번호를 나타냅니다.
+``funct`` 필드는 가속기가 서로 다른 명령어를 구분하는 데 사용할 수 있는 7비트 정수입니다.
 
-Note that communication through a RoCC interface requires a custom software toolchain, whereas MMIO peripherals can use that standard toolchain with appropriate driver support.
+RoCC 인터페이스를 통한 통신은 사용자 정의 소프트웨어 툴체인이 필요하지만, MMIO 주변 장치는 적절한 드라이버 지원을 통해 표준 툴체인을 사용할 수 있습니다.
+

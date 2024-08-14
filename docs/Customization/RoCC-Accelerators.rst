@@ -3,13 +3,13 @@
 Adding a RoCC Accelerator
 -------------------------
 
-A RoCC accelerator is a component that can be added into a particular Rocket or BooM tile.
-It receives instructions that match a certain opcode, talks to other parts of the core or SoC (L1, L2, PTW, FPU), and then optionally writes back a value into the register corresponding with the ``rd`` field of the instruction.
-RoCC accelerators are instantiated via modules that extend the ``LazyRoCC`` class.
-These modules lazily instantiate another module which extends the ``LazyRoCCModule`` class.
-This extra layer of indirection is used so that Diplomacy can figure out how to connect the RoCC module to the chip, without needing to instantiate the module ahead of time.
-Lazy modules are further explained in the :ref:`Chipyard-Basics/Configs-Parameters-Mixins:Cake Pattern / Mixin` section.
-Below is a minimal instantiation of a RoCC accelerator.
+RoCC 가속기는 특정 Rocket 또는 BooM 타일에 추가할 수 있는 컴포넌트입니다.
+이 가속기는 특정 opcode와 일치하는 명령을 수신하고, 코어 또는 SoC의 다른 부분(L1, L2, PTW, FPU)과 통신한 후, 선택적으로 명령의 ``rd`` 필드와 대응하는 레지스터에 값을 다시 쓸 수 있습니다.
+RoCC 가속기는 ``LazyRoCC`` 클래스를 확장하는 모듈을 통해 인스턴스화됩니다.
+이 모듈은 ``LazyRoCCModule`` 클래스를 확장하는 또 다른 모듈을 지연적으로 인스턴스화합니다.
+이 추가적인 간접 계층은 Diplomacy가 RoCC 모듈을 칩에 연결하는 방법을 파악할 수 있도록 하여, 모듈을 미리 인스턴스화할 필요가 없도록 합니다.
+지연 모듈에 대한 자세한 내용은 :ref:`Chipyard-Basics/Configs-Parameters-Mixins:Cake Pattern / Mixin` 섹션에서 설명합니다.
+아래는 RoCC 가속기를 최소한으로 인스턴스화한 예시입니다.
 
 .. code-block:: scala
 
@@ -21,57 +21,54 @@ Below is a minimal instantiation of a RoCC accelerator.
     class CustomAcceleratorModule(outer: CustomAccelerator)
         extends LazyRoCCModuleImp(outer) {
       val cmd = Queue(io.cmd)
-      // The parts of the command are as follows
-      // inst - the parts of the instruction itself
+      // 명령의 구성 요소는 다음과 같습니다
+      // inst - 명령 자체의 부분
       //   opcode
-      //   rd - destination register number
-      //   rs1 - first source register number
-      //   rs2 - second source register number
+      //   rd - 목적지 레지스터 번호
+      //   rs1 - 첫 번째 소스 레지스터 번호
+      //   rs2 - 두 번째 소스 레지스터 번호
       //   funct
-      //   xd - is the destination register being used?
-      //   xs1 - is the first source register being used?
-      //   xs2 - is the second source register being used?
-      // rs1 - the value of source register 1
-      // rs2 - the value of source register 2
+      //   xd - 목적지 레지스터가 사용되고 있는가?
+      //   xs1 - 첫 번째 소스 레지스터가 사용되고 있는가?
+      //   xs2 - 두 번째 소스 레지스터가 사용되고 있는가?
+      // rs1 - 소스 레지스터 1의 값
+      // rs2 - 소스 레지스터 2의 값
       ...
     }
 
-The ``opcodes`` parameter for ``LazyRoCC`` is the set of custom opcodes that will map to this accelerator.
-More on this in the next subsection.
+``LazyRoCC`` 의 ``opcodes`` 매개변수는 이 가속기에 매핑될 사용자 정의 opcode 세트를 나타냅니다.
+이에 대한 자세한 내용은 다음 소절에서 설명합니다.
 
-The ``LazyRoCC`` class contains two TLOutputNode instances, ``atlNode`` and ``tlNode``.
-The former connects into a tile-local arbiter along with the backside of the L1 instruction cache.
-The latter connects directly to the L1-L2 crossbar.
-The corresponding Tilelink ports in the module implementation's IO bundle are ``atl`` and ``tl``, respectively.
+``LazyRoCC`` 클래스에는 두 개의 TLOutputNode 인스턴스, ``atlNode`` 와 ``tlNode`` 가 포함되어 있습니다.
+전자는 L1 명령어 캐시의 후단과 함께 타일 로컬 중재기에 연결됩니다.
+후자는 L1-L2 크로스바에 직접 연결됩니다.
+모듈 구현의 IO 번들에서 해당하는 Tilelink 포트는 각각 ``atl`` 과 ``tl`` 입니다.
 
-The other interfaces available to the accelerator are ``mem``, which provides access to the L1 cache;
-``ptw`` which provides access to the page-table walker;
-the ``busy`` signal, which indicates when the accelerator is still handling an instruction;
-and the ``interrupt`` signal, which can be used to interrupt the CPU.
+가속기에서 사용할 수 있는 다른 인터페이스로는 L1 캐시에 대한 접근을 제공하는 ``mem``, 페이지 테이블 워커에 대한 접근을 제공하는 ``ptw``, 가속기가 여전히 명령을 처리 중인지를 나타내는 ``busy`` 신호, 그리고 CPU를 인터럽트하는 데 사용할 수 있는 ``interrupt`` 신호가 있습니다.
 
-Look at the examples in ``generators/rocket-chip/src/main/scala/tile/LazyRoCC.scala`` for detailed information on the different IOs.
-There is also more information about each of the signals in `the RoCC Documentation written by UCSD <https://docs.google.com/document/d/1CH2ep4YcL_ojsa3BVHEW-uwcKh1FlFTjH_kg5v8bxVw/edit>`_, although it is updated out of tree and may be out of date.
+다양한 IO에 대한 자세한 정보는 ``generators/rocket-chip/src/main/scala/tile/LazyRoCC.scala`` 에 있는 예제를 참조하십시오.
+또한, UCSD에서 작성한 `RoCC Documentation <https://docs.google.com/document/d/1CH2ep4YcL_ojsa3BVHEW-uwcKh1FlFTjH_kg5v8bxVw/edit>`_ 에서 각 신호에 대한 더 많은 정보를 찾을 수 있지만, 이 문서는 트리 외부에서 업데이트되었으며 현재와 다를 수 있습니다.
 
 
 Accessing Memory via L1 Cache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A RoCC accelerator can access memory through the L1 Cache of the core it is attached to.
-This is a simpler interface for accelerator architects to implement, but will generally have lower achievable throughput than a dedicated TileLink port.
+RoCC 가속기는 연결된 코어의 L1 캐시를 통해 메모리에 접근할 수 있습니다.
+이는 가속기 설계자가 구현하기에 더 간단한 인터페이스이지만, 전용 TileLink 포트에 비해 일반적으로 달성 가능한 처리량이 낮습니다.
 
-In your ``LazyRoCCModuleImp``, the signal ``io.mem`` is a ``HellaCacheIO``, which is defined in ``generators/rocket-chip/src/main/scala/rocket/HellaCache.scala``.
+``LazyRoCCModuleImp`` 에서 ``io.mem`` 신호는 ``HellaCacheIO`` 이며, 이는 ``generators/rocket-chip/src/main/scala/rocket/HellaCache.scala`` 에서 정의됩니다.
 
 .. code-block:: scala
 
     class HellaCacheIO(implicit p: Parameters) extends CoreBundle()(p) {
         val req = Decoupled(new HellaCacheReq)
-        val s1_kill = Output(Bool()) // kill previous cycle's req
-        val s1_data = Output(new HellaCacheWriteData()) // data for previous cycle's req
-        val s2_nack = Input(Bool()) // req from two cycles ago is rejected
-        val s2_nack_cause_raw = Input(Bool()) // reason for nack is store-load RAW hazard (performance hint)
-        val s2_kill = Output(Bool()) // kill req from two cycles ago
-        val s2_uncached = Input(Bool()) // advisory signal that the access is MMIO
-        val s2_paddr = Input(UInt(paddrBits.W)) // translated address
+        val s1_kill = Output(Bool()) // 이전 사이클의 요청 제거
+        val s1_data = Output(new HellaCacheWriteData()) // 이전 사이클의 요청에 대한 데이터
+        val s2_nack = Input(Bool()) // 두 사이클 전의 요청이 거부됨
+        val s2_nack_cause_raw = Input(Bool()) // nack의 원인은 스토어-로드 RAW 위험(성능 힌트)
+        val s2_kill = Output(Bool()) // 두 사이클 전의 요청 제거
+        val s2_uncached = Input(Bool()) // 접근이 MMIO임을 알리는 신호
+        val s2_paddr = Input(UInt(paddrBits.W)) // 변환된 주소
 
         val resp = Flipped(Valid(new HellaCacheResp))
         val replay_next = Input(Bool())
@@ -82,23 +79,23 @@ In your ``LazyRoCCModuleImp``, the signal ``io.mem`` is a ``HellaCacheIO``, whic
         val ordered = Input(Bool())
         val perf = Input(new HellaCachePerfEvents())
 
-        val keep_clock_enabled = Output(Bool()) // should D$ avoid clock-gating itself?
-        val clock_enabled = Input(Bool()) // is D$ currently being clocked?
+        val keep_clock_enabled = Output(Bool()) // D$가 자체적으로 클럭 게이팅을 피해야 하는가?
+        val clock_enabled = Input(Bool()) // D$가 현재 클럭되고 있는가?
     }
 
-At a high level, you must tag requests that you send across this interface using the ``io.mem.req.tag``, and the tag will be returned to you when the data is ready.
-Responses may come back out of order if you issue multiple requests, so you can use these tags to tell what data came back.
-Note that the number of tag bits is controled by ``dcacheReqTagBits``, which is usually set to 6.
-Using more than 6 bits will cause errors or hangs.
+높은 수준에서, 이 인터페이스를 통해 전송하는 요청에 ``io.mem.req.tag`` 를 사용하여 태그를 지정해야 하며, 데이터가 준비되면 해당 태그가 반환됩니다.
+여러 요청을 발행하면 응답이 순서 없이 돌아올 수 있으므로, 이 태그를 사용하여 어떤 데이터가 반환되었는지 확인할 수 있습니다.
+태그 비트의 수는 일반적으로 6으로 설정된 ``dcacheReqTagBits`` 에 의해 제어됩니다.
+6비트를 초과하여 사용하면 오류나 정지가 발생할 수 있습니다.
 
 
 Adding RoCC accelerator to Config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RoCC accelerators can be added to a core by overriding the ``BuildRoCC`` parameter in the configuration.
-This takes a sequence of functions producing ``LazyRoCC`` objects, one for each accelerator you wish to add.
+RoCC 가속기는 구성에서 ``BuildRoCC`` 매개변수를 재정의하여 코어에 추가할 수 있습니다.
+이 매개변수는 추가하려는 각 가속기마다 ``LazyRoCC`` 객체를 생성하는 함수들의 시퀀스를 받습니다.
 
-For instance, if we wanted to add the previously defined accelerator and route custom0 and custom1 instructions to it, we could do the following.
+예를 들어, 이전에 정의된 가속기를 추가하고 custom0 및 custom1 명령을 이 가속기로 라우팅하려면 다음과 같이 할 수 있습니다.
 
 .. code-block:: scala
 
@@ -111,4 +108,7 @@ For instance, if we wanted to add the previously defined accelerator and route c
       new WithCustomAccelerator ++
       new RocketConfig)
 
-To add RoCC instructions in your program, use the RoCC C macros provided in ``tests/rocc.h``. You can find examples in the files ``tests/accum.c`` and ``charcount.c``.
+프로그램에서 RoCC 명령을 추가하려면 ``tests/rocc.h`` 에서 제공되는 RoCC C 매크로를 사용하십시오. 예제는 ``tests/accum.c`` 및 ``charcount.c`` 파일에서 찾을 수 있습니다.
+
+
+

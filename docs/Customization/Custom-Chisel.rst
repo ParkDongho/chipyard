@@ -4,14 +4,13 @@ Integrating Custom Chisel Projects into the Generator Build System
 ==================================================================
 
 .. warning::
-   This section assumes integration of custom Chisel through git submodules.
-   While it is possible to directly commit custom Chisel into the Chipyard framework,
-   we heavily recommend managing custom code through git submodules. Using submodules decouples
-   development of custom features from development on the Chipyard framework.
+   이 섹션은 git 서브모듈을 통해 사용자 정의 Chisel을 통합하는 것을 가정합니다.
+   Chipyard 프레임워크에 직접 사용자 정의 Chisel을 커밋하는 것도 가능하지만,
+   사용자 정의 코드를 git 서브모듈로 관리하는 것을 강력히 권장합니다. 서브모듈을 사용하면
+   Chipyard 프레임워크 개발과 사용자 정의 기능 개발을 분리할 수 있습니다.
 
-
-While developing, you want to include Chisel code in a submodule so that it can be shared by different projects.
-To add a submodule to the Chipyard framework, make sure that your project is organized as follows.
+개발 중에는 Chisel 코드를 서브모듈로 포함시켜 여러 프로젝트에서 공유할 수 있도록 하고 싶을 것입니다.
+Chipyard 프레임워크에 서브모듈을 추가하려면, 프로젝트가 다음과 같이 구성되어 있는지 확인하십시오.
 
 .. code-block:: none
 
@@ -20,12 +19,12 @@ To add a submodule to the Chipyard framework, make sure that your project is org
         src/main/scala/
             YourFile.scala
 
-Put this in a git repository and make it accessible.
-Then add it as a submodule to under the following directory hierarchy: ``generators/yourproject``.
+이 구조를 가진 git 저장소를 만들고 접근할 수 있도록 설정하십시오.
+그런 다음, 다음 디렉토리 계층 아래에 서브모듈로 추가합니다: ``generators/yourproject``.
 
-The ``build.sbt`` is a minimal file which describes metadata for a Chisel project.
-For a simple project, the ``build.sbt`` can even be empty, but below we provide an example
-build.sbt.
+``build.sbt`` 는 Chisel 프로젝트에 대한 메타데이터를 설명하는 최소한의 파일입니다.
+간단한 프로젝트의 경우, ``build.sbt`` 는 비어 있을 수도 있지만, 아래에 예시적인
+``build.sbt`` 를 제공합니다.
 
 .. code-block:: scala
 
@@ -37,24 +36,24 @@ build.sbt.
 
     scalaVersion := "2.12.4"
 
-
+다음과 같이 쉘에서 서브모듈을 추가하십시오.
 
 .. code-block:: shell
 
     cd generators/
     git submodule add https://git-repository.com/yourproject.git
 
-Then add ``yourproject`` to the Chipyard top-level build.sbt file.
+그런 다음, Chipyard 최상위 ``build.sbt`` 파일에 ``yourproject`` 를 추가합니다.
 
 .. code-block:: scala
 
     lazy val yourproject = (project in file("generators/yourproject")).settings(commonSettings).dependsOn(rocketchip)
 
-You can then import the classes defined in the submodule in a new project if
-you add it as a dependency. For instance, if you want to use this code in
-the ``chipyard`` project, add your project to the list of sub-projects in the
-`.dependsOn()` for `lazy val chipyard`. The original code may change over time, but it
-should look something like this:
+이제 새 프로젝트에서 서브모듈에 정의된 클래스를 가져오려면,
+이를 의존성으로 추가해야 합니다. 예를 들어, ``chipyard`` 프로젝트에서
+이 코드를 사용하려면, ``lazy val chipyard`` 의 `.dependsOn()` 목록에
+프로젝트를 추가하십시오. 원본 코드는 시간이 지남에 따라 변경될 수 있지만,
+다음과 유사하게 보일 것입니다:
 
 .. code-block:: scala
 
@@ -62,7 +61,7 @@ should look something like this:
         .dependsOn(testchipip, rocketchip, boom, rocketchip_blocks, rocketchip_inclusive_cache,
             dsptools, `rocket-dsp-utils`,
             gemmini, icenet, tracegen, cva6, nvdla, sodor, ibex, fft_generator,
-            yourproject, // <- added to the middle of the list for simplicity
+            yourproject, // <- 간단함을 위해 목록 중간에 추가됨
             constellation, mempress)
         .settings(libraryDependencies ++= rocketLibDeps.value)
         .settings(
@@ -71,3 +70,4 @@ should look something like this:
             )
         )
         .settings(commonSettings)
+

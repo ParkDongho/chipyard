@@ -1,31 +1,32 @@
 .. _dsptools-blocks:
 
-Dsptools is a Chisel library that aids in writing custom signal processing accelerators. It does this by:
-* Giving types and helpers that allow you to express mathematical operations more directly.
-* Typeclasses that let you write polymorphic generators, for example an FIR filter generator that works for both real- and complex-valued filters.
-* Structures for packaging DSP blocks and integrating them into a rocketchip-based SoC.
-* Test harnesses for testing DSP circuits, as well as VIP-style drivers and monitors for DSP blocks.
-
-The `Dsptools repository <https://github.com/ucb-bar/dsptools/>`_ has more documentation.
-
-
 Dsptools Blocks
 ===============
-A ``DspBlock`` is the basic unit of signal processing functionality that can be integrated into an SoC.
-It has a AXI4-stream interface and an optional memory interface.
-The idea is that these ``DspBlocks`` can be easily designed, unit tested, and assembled lego-style to build complex functionality.
-A ``DspChain`` is one example of how to assemble ``DspBlocks``, in which case the streaming interfaces are connected serially into a pipeline, and a bus is instatiated and connected to every block with a memory interface.
 
-Chipyard has example designs that integrate a ``DspBlock`` to a rocketchip-based SoC as an MMIO peripheral. The custom ``DspBlock`` has a ``ReadQueue`` before it and a ``WriteQueue`` after it, which allow memory mapped access to the streaming interfaces so the rocket core can interact with the ``DspBlock`` [#]_.  This section will primarily focus on designing Tilelink-based peripherals. However, through the resources provided in Dsptools, one could also define an AXI4-based peripheral by following similar steps. Furthermore, the examples here are simple, but can be extended to implement more complex accelerators, for example an `OFDM baseband <https://github.com/grebe/ofdm>`_ or a `spectrometer <https://github.com/ucb-art/craft2-chip>`_.
+Dsptools는 커스텀 신호 처리 가속기를 작성하는 데 도움을 주는 Chisel 라이브러리입니다. 다음과 같은 기능을 제공합니다:
+* 수학 연산을 보다 직접적으로 표현할 수 있는 타입과 도우미 기능을 제공합니다.
+* 실제 값과 복소수 값을 모두 처리할 수 있는 FIR 필터 생성기와 같은 다형성 생성기를 작성할 수 있는 타입 클래스가 있습니다.
+* DSP 블록을 패키징하고 이를 rocketchip 기반 SoC에 통합하는 구조를 제공합니다.
+* DSP 회로를 테스트하기 위한 테스트 하니스와 DSP 블록용 VIP 스타일 드라이버 및 모니터를 제공합니다.
+
+`Dsptools repository <https://github.com/ucb-bar/dsptools/>`_ 에는 더 많은 문서가 있습니다.
+
+
+A ``DspBlock`` 는 SoC에 통합할 수 있는 신호 처리 기능의 기본 단위입니다.
+이 블록은 AXI4-스트림 인터페이스와 선택적인 메모리 인터페이스를 가집니다.
+``DspBlocks`` 는 쉽게 설계되고, 유닛 테스트되며, 레고 스타일로 조립되어 복잡한 기능을 구축할 수 있습니다.
+``DspChain`` 은 ``DspBlocks`` 를 조립하는 한 가지 예입니다. 이 경우 스트리밍 인터페이스는 파이프라인으로 직렬 연결되고, 메모리 인터페이스가 있는 모든 블록에 연결된 버스가 인스턴스화됩니다.
+
+Chipyard에는 MMIO 주변 장치로 rocketchip 기반 SoC에 통합된 ``DspBlock`` 의 예제 설계가 있습니다. 커스텀 ``DspBlock`` 은 앞에 ``ReadQueue`` 가 있고 뒤에 ``WriteQueue`` 가 있어 스트리밍 인터페이스에 메모리 매핑된 액세스를 제공하여 로켓 코어가 ``DspBlock`` 과 상호 작용할 수 있게 합니다 [#]_. 이 섹션은 주로 Tilelink 기반 주변 장치 설계에 중점을 둡니다. 그러나 Dsptools에서 제공하는 리소스를 통해 유사한 단계를 따라 AXI4 기반 주변 장치를 정의할 수도 있습니다. 또한 여기 제공된 예제는 간단하지만, 예를 들어 `OFDM baseband <https://github.com/grebe/ofdm>`_ 또는 `spectrometer <https://github.com/ucb-art/craft2-chip>`_ 와 같은 더 복잡한 가속기를 구현하는 데 확장될 수 있습니다.
 
 .. figure:: ../_static/images/fir-block-diagram.svg
     :align: center
-    :alt: Block diagram showing how FIR is integrated with rocket.
+    :alt: FIR이 로켓과 통합되는 방법을 보여주는 블록 다이어그램.
     :width: 400px
 
-For this example, we will show you how to connect a simple FIR filter created using Dsptools as an MMIO peripheral as shown in the figure above. The full code can be found in ``generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala``. That being said, one could substitute any module with a ready valid interface in the place of the FIR and achieve the same results. As long as the read and valid signals of the module are attached to those of a corresponding ``DSPBlock`` wrapper, and that wrapper is placed in a chain with a ``ReadQueue`` and a ``WriteQueue``, following the general outline establised by these steps will allow you to interact with that block as a memory mapped IO.
+이 예제에서는 위 그림과 같이 Dsptools를 사용하여 생성된 간단한 FIR 필터를 MMIO 주변 장치로 연결하는 방법을 보여줍니다. 전체 코드는 ``generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala`` 에서 확인할 수 있습니다. FIR 대신 준비된 유효 인터페이스를 사용하는 모듈을 대체하여도 동일한 결과를 얻을 수 있습니다. 모듈의 읽기 및 유효 신호가 해당 ``DSPBlock`` 래퍼의 신호에 연결되고 해당 래퍼가 ``ReadQueue`` 및 ``WriteQueue`` 가 있는 체인에 배치되는 한, 이 단계에서 설정한 일반적인 개요를 따르면 해당 블록과 메모리 매핑된 IO로 상호 작용할 수 있습니다.
 
-The module ``GenericFIR`` is the overall wrapper of our FIR module. This module links together a variable number of ``GenericFIRDirectCell`` submodules, each of which performs the computations for one coefficient in a FIR direct form architecture. It is important to note that both modules are type-generic, which means that they can be instantiated for any datatype ``T`` that implements ``Ring`` operations (e.g. addition, multiplication, identities).
+``GenericFIR`` 모듈은 FIR 모듈의 전체 래퍼입니다. 이 모듈은 FIR 직접 폼 아키텍처에서 하나의 계수를 계산하는 각 ``GenericFIRDirectCell`` 서브 모듈을 연결합니다. 두 모듈 모두 타입 제네릭임을 주목해야 합니다. 즉, 덧셈, 곱셈, 항등 연산을 구현하는 데이터 타입 ``T`` 에 대해 인스턴스화할 수 있습니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
@@ -40,30 +41,30 @@ The module ``GenericFIR`` is the overall wrapper of our FIR module. This module 
 Creating a DspBlock
 -------------------
 
-The first step in attaching the FIR filter as a MMIO peripheral is to create an abstract subclass of ``DspBlock`` the wraps around the ``GenericFIR`` module. Streaming outputs and inputs are packed and unpacked into ``UInt`` s. If there were control signals, this is where they'd go from raw IOs to memory mapped. The main steps of this process are as follows.
+FIR 필터를 MMIO 주변 장치로 연결하는 첫 번째 단계는 ``GenericFIR`` 모듈을 래핑하는 ``DspBlock`` 의 추상 서브클래스를 생성하는 것입니다. 스트리밍 출력 및 입력은 ``UInt`` 로 포장되고 풀립니다. 제어 신호가 있다면, 이 단계에서 원시 IO에서 메모리 매핑으로 변환됩니다. 이 과정의 주요 단계는 다음과 같습니다.
 
-1. Instantiate a ``GenericFIR`` within ``GenericFIRBlock``.
-2. Attach the ready and valid signals from the in and out connections.
-3. Cast the module input data to the input type of ``GenericFIR`` (``GenericFIRBundle``) and attach.
-4. Cast the output of ``GenericFIR`` to ``UInt`` and attach to the module output.
+1. ``GenericFIR`` 를 ``GenericFIRBlock`` 내에서 인스턴스화합니다.
+2. 인 및 아웃 연결에서 준비 및 유효 신호를 연결합니다.
+3. 모듈 입력 데이터를 ``GenericFIR`` 의 입력 타입 (``GenericFIRBundle``)으로 캐스팅하고 연결합니다.
+4. ``GenericFIR``의 출력을 ``UInt`` 로 캐스팅하고 모듈 출력에 연결합니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
     :start-after: DOC include start: GenericFIRBlock chisel
     :end-before: DOC include end: GenericFIRBlock chisel
 
-Note that at this point the ``GenericFIRBlock`` does not have a type of memory interface specified. This abstract class can be used to create different flavors that use AXI-4, TileLink, AHB, or whatever other memory interface you like like.
+이 시점에서 ``GenericFIRBlock`` 에는 메모리 인터페이스 유형이 지정되지 않았음을 주목하십시오. 이 추상 클래스는 AXI-4, TileLink, AHB 또는 원하는 다른 메모리 인터페이스를 사용하는 다양한 버전을 생성하는 데 사용할 수 있습니다.
 
 Connecting DspBlock by TileLink
 -------------------------------
-With these classes implemented, you can begin to construct the chain by extending ``GenericFIRBlock`` while using the ``TLDspBlock`` trait via mixin.
+이러한 클래스가 구현되면 ``TLDspBlock`` 트레이트를 믹스인하여 ``GenericFIRBlock`` 을 확장함으로써 체인을 구성할 수 있습니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
     :start-after: DOC include start: TLGenericFIRBlock chisel
     :end-before: DOC include end: TLGenericFIRBlock chisel
 
-We can then construct the final chain by utilizing the ``TLWriteQueue`` and ``TLReadeQueue`` modules found in ``generators/chipyard/src/main/scala/example/dsptools/DspBlocks.scala``. The chain is created by passing a list of factory functions to the constructor of ``TLChain``. The constructor then automatically instantiates these ``DspBlocks``, connects their stream nodes in order, creates a bus, and connects any ``DspBlocks`` that have memory interfaces to the bus.
+그런 다음 ``generators/chipyard/src/main/scala/example/dsptools/DspBlocks.scala`` 에 있는 ``TLWriteQueue`` 및 ``TLReadeQueue`` 모듈을 사용하여 최종 체인을 구성할 수 있습니다. 체인은 ``TLChain`` 의 생성자에 팩토리 함수 목록을 전달하여 생성됩니다. 생성자는 이러한 ``DspBlocks`` 를 자동으로 인스턴스화하고, 스트림 노드를 순서대로 연결하며, 버스를 생성하고 메모리 인터페이스가 있는 ``DspBlocks`` 를 버스에 연결합니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
@@ -72,31 +73,33 @@ We can then construct the final chain by utilizing the ``TLWriteQueue`` and ``TL
 
 Top Level Traits
 ----------------
-As in the previous MMIO example, we use a cake pattern to hook up our module to our SoC.
+이전의 MMIO 예제와 마찬가지로, 케이크 패턴을 사용하여 모듈을 SoC에 연결합니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
     :start-after: DOC include start: CanHavePeripheryStreamingFIR chisel
     :end-before: DOC include end: CanHavePeripheryStreamingFIR chisel
 
-Note that this is the point at which we decide the datatype for our FIR. You could create different configs that use different types for the FIR, for example a config that instantiates a complex-valued FIR filter.
+이 시점에서 FIR의 데이터 타입을 결정하는 것을 주목하십시오. 복소수 값을 가진 FIR 필터를 인스턴스화하는 구성을 생성하는 것처럼 FIR에 대해 다른 타입을 사용하는 다른 구성을 생성할 수 있습니다.
 
 Constructing the Top and Config
 -------------------------------
 
-Once again following the path of the previous MMIO example, we now want to mix our traits into the system as a whole. The code is from ``generators/chipyard/src/main/scala/DigitalTop.scala``
+이전 MMIO 예제의 경로를 다시 따라가며, 이제 시스템 전체에 트레이트를 믹스인하고자 합니다. 코드는 ``generators/chipyard/src/main/scala/DigitalTop.scala`` 에서 가져왔습니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/DigitalTop.scala
     :language: scala
     :start-after: DOC include start: DigitalTop
     :end-before: DOC include end: DigitalTop
 
-Finally, we create the configuration class in ``generators/chipyard/src/main/scala/config/MMIOAcceleratorConfigs.scala`` that uses the ``WithFIR`` mixin defined in ``generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala``.
+마지막으로, ``generators/chipyard/src/main/scala/config/MMIOAcceleratorConfigs.scala`` 에 ``generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala`` 에서 정의된 ``WithFIR`` 믹스인을 사용하는 구성 클래스를 생성합니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/example/dsptools/GenericFIR.scala
     :language: scala
     :start-after: DOC include start: WithStreamingFIR
-    :end-before: DOC include end: WithStreamingFIR
+    :end-before: DOC include end: WithStreaming
+
+FIR
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/MMIOAcceleratorConfigs.scala
     :language: scala
@@ -106,20 +109,20 @@ Finally, we create the configuration class in ``generators/chipyard/src/main/sca
 FIR Testing
 -----------
 
-We can now test that the FIR is working. The test program is found in ``tests/streaming-fir.c``.
+이제 FIR이 작동하는지 테스트할 수 있습니다. 테스트 프로그램은 ``tests/streaming-fir.c`` 에 있습니다.
 
 .. literalinclude:: ../../tests/streaming-fir.c
     :language: c
 
-The test feed a series of values into the fir and compares the output to a golden model of computation. The base of the module's MMIO write region is at 0x2000 and the base of the read region is at 0x2100 by default.
+테스트는 일련의 값을 FIR에 전달하고 출력을 계산의 골든 모델과 비교합니다. 모듈의 MMIO 쓰기 영역의 기본값은 0x2000이고 읽기 영역의 기본값은 0x2100입니다.
 
-Compiling this program with ``make`` produces a ``streaming-fir.riscv`` executable.
+``make`` 를 사용하여 이 프로그램을 컴파일하면 ``streaming-fir.riscv`` 실행 파일이 생성됩니다.
 
-Now we can run our simulation.
+이제 시뮬레이션을 실행할 수 있습니다.
 
 .. code-block:: shell
 
     cd sims/verilator
     make CONFIG=StreamingFIRRocketConfig BINARY=../../tests/streaming-fir.riscv run-binary
+.. [#] ``ReadQueue`` 및 ``WriteQueue`` 는 ``DspBlock`` 을 작성하는 방법과 이를 로켓에 통합하는 방법을 보여주는 좋은 예이지만, 실제 설계에서는 DMA 엔진이 더 선호됩니다. ``ReadQueue`` 는 빈 큐를 읽으려고 하면 프로세서를 중단시키고, ``WriteQueue`` 는 큐가 가득 찼을 때 쓰기를 시도하면 중단되며, 이는 DMA 엔진이 더 우아하게 피할 수 있습니다. 또한, DMA 엔진은 데이터를 이동시키는 작업을 수행하여 프로세서가 다른 유용한 작업을 수행하거나 (또는 대기)할 수 있도록 해줍니다.
 
-.. [#] ``ReadQueue`` and ``WriteQueue`` are good illustrations of how to write a ``DspBlock`` and how they can be integrated into rocket, but in a real design a DMA engine would be preferred. ``ReadQueue`` will stall the processor if you try to read an empty queue, and ``WriteQueue`` will stall if you try to write to a full queue, which a DMA engine can more elegantly avoid. Furthermore, a DMA engine can do the work of moving data, freeing the processor to do other useful work (or sleep).

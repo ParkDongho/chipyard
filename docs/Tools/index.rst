@@ -1,8 +1,8 @@
 Development Tools
 ==============================
 
-The Chipyard framework relays heavily on a set of Scala-based tools.
-The following pages will introduce them, and how we can use them in order to generate flexible designs.
+Chipyard 프레임워크는 Scala 기반 도구 세트에 크게 의존합니다.
+다음 페이지에서는 이러한 도구를 소개하고, 유연한 설계를 생성하는 데 어떻게 사용할 수 있는지 설명합니다.
 
 .. toctree::
    :maxdepth: 2
@@ -13,3 +13,4 @@ The following pages will introduce them, and how we can use them in order to gen
    Treadle
    Dsptools
    Tapeout-Tools
+

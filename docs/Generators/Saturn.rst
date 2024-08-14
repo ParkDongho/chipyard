@@ -1,19 +1,19 @@
 Saturn
 ========
 
-Saturn is a parameterized RISC-V Vector Unit generator currently supporting integration with the Rocket and Shuttle cores.
-Saturn implements a compact short-vector-length vector microarchitecture suitable for deployment in a DSP-optimized core or area-efficient general-purpose core.
+Saturn은 현재 Rocket 및 Shuttle 코어와 통합을 지원하는 매개변수화된 RISC-V 벡터 유닛 생성기입니다.
+Saturn은 DSP 최적화 코어 또는 공간 효율적인 범용 코어에 배포하기에 적합한 컴팩트한 단거리 벡터 길이 벡터 마이크로아키텍처를 구현합니다.
 
-More documentation on Saturn will be released in the future.
-A partial listing of supported Saturn configurations is in ``generators/chipyard/src/main/scala/config/SaturnConfigs.scala``.
+Saturn에 대한 더 많은 문서는 앞으로 공개될 예정입니다.
+지원되는 Saturn 구성의 일부 목록은 ``generators/chipyard/src/main/scala/config/SaturnConfigs.scala`` 에 있습니다.
 
- * Full support for `V` application-profile RVV 1.0
- * Precise traps with virtual memory
- * Indexed/strided/segmented loads and stores
- * Mask operations
- * Register-gather + reductions
- * `Zvfh` support for vector half-precision floating-point (FP16)
- * `Zve64d` support for vector FP32 and FP64
- * Configurable vector length, from `Zvl64b` up (tested to `Zvl4096b`)
- * Configurable datapath width, from 64b up (tested to 512b)
+ * `V` 애플리케이션 프로파일 RVV 1.0에 대한 전체 지원
+ * 가상 메모리를 사용한 정확한 트랩
+ * 인덱스/스트라이드/세그먼트 로드 및 저장
+ * 마스크 연산
+ * 레지스터-갭스와 감소 연산
+ * 벡터 하프 프리시전 부동소수점(FP16)을 위한 `Zvfh` 지원
+ * 벡터 FP32 및 FP64를 위한 `Zve64d` 지원
+ * `Zvl64b` 부터 시작하는 구성 가능한 벡터 길이(테스트된 길이는 `Zvl4096b` 까지)
+ * 64비트에서 시작하는 구성 가능한 데이터 경로 폭(테스트된 폭은 512비트까지)
 

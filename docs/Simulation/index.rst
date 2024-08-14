@@ -1,18 +1,14 @@
 Simulation
 =======================
 
-Chipyard supports two classes of simulation:
+Chipyard는 두 가지 종류의 시뮬레이션을 지원합니다:
 
-#. Software RTL simulation using commercial or open-source (Verilator) RTL simulators
-#. FPGA-accelerated full-system simulation using FireSim
+1. 상용 또는 오픈 소스(Verilator) RTL 시뮬레이터를 사용하는 소프트웨어 RTL 시뮬레이션
+2. FireSim을 사용하는 FPGA 가속 풀 시스템 시뮬레이션
 
-Software RTL simulators of Chipyard designs run at O(1 KHz), but compile
-quickly and provide full waveforms. Conversely, FPGA-accelerated simulators run
-at O(100 MHz), making them appropriate for booting an operating system and
-running a complete workload, but have multi-hour compile times and poorer debug
-visibility.
+Chipyard 디자인의 소프트웨어 RTL 시뮬레이터는 약 O(1 KHz)의 속도로 실행되지만, 컴파일이 빠르고 전체 웨이브폼을 제공합니다. 반면에 FPGA 가속 시뮬레이터는 약 O(100 MHz)의 속도로 실행되어 운영 체제를 부팅하고 전체 작업을 실행하는 데 적합하지만, 컴파일 시간이 여러 시간에 이르고 디버그 가시성이 낮습니다.
 
-Click next to see how to run a simulation.
+다음 항목을 클릭하여 시뮬레이션을 실행하는 방법을 확인하세요.
 
 .. toctree::
    :maxdepth: 2
@@ -20,3 +16,4 @@ Click next to see how to run a simulation.
 
    Software-RTL-Simulation
    FPGA-Accelerated-Simulation
+

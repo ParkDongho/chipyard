@@ -1,71 +1,53 @@
 Rocket Chip
 ===========
 
-Rocket Chip generator is an SoC generator developed at Berkeley and SiFive, and now maintained openly in Chips Alliance.
-Chipyard uses the Rocket Chip generator as the basis for producing a RISC-V SoC.
+Rocket Chip 생성기는 Berkeley와 SiFive에서 개발되었으며, 현재는 Chips Alliance에서 공개적으로 유지 관리되고 있는 SoC 생성기입니다.
+Chipyard는 RISC-V SoC를 생성하는 기본으로 Rocket Chip 생성기를 사용합니다.
 
-`Rocket Chip` is distinct from `Rocket core`, the in-order RISC-V CPU generator.
-Rocket Chip includes many parts of the SoC besides the CPU. Though Rocket Chip
-uses Rocket core CPUs by default, it can also be configured to use the BOOM
-out-of-order core generator or some other custom CPU generator instead.
+`Rocket Chip` 은 인오더 RISC-V CPU 생성기인 `Rocket core` 와는 구별됩니다.
+Rocket Chip에는 CPU 외에도 SoC의 많은 부분이 포함되어 있습니다. 기본적으로 Rocket Chip은 Rocket core CPU를 사용하지만, BOOM 아웃오브오더 코어 생성기 또는 다른 사용자 정의 CPU 생성기를 사용하도록 구성할 수도 있습니다.
 
-A detailed diagram of a typical Rocket Chip system is shown below.
+일반적인 Rocket Chip 시스템의 상세한 다이어그램은 아래에 표시되어 있습니다.
 
 .. image:: ../_static/images/rocketchip-diagram.png
 
 Tiles
 -----
 
-The diagram shows a dual-core ``Rocket`` system. Each ``Rocket`` core is
-grouped with a page-table walker, L1 instruction cache, and L1 data cache into
-a ``RocketTile``.
+다이어그램은 듀얼 코어 ``Rocket`` 시스템을 보여줍니다. 각 ``Rocket`` 코어는 페이지 테이블 워커, L1 명령어 캐시, L1 데이터 캐시와 함께 ``RocketTile`` 로 그룹화됩니다.
 
-The ``Rocket`` core can also be swapped for a ``BOOM`` core. Each tile can
-also be configured with a RoCC accelerator that connects to the core as a
-coprocessor.
+``Rocket`` 코어는 또한 ``BOOM`` 코어로 교체할 수 있습니다. 각 타일은 코프로세서로 코어에 연결되는 RoCC 가속기로 구성될 수도 있습니다.
 
 Memory System
 -------------
-The tiles connect to the ``SystemBus``, which connect it to the L2 cache banks.
-The L2 cache banks then connect to the ``MemoryBus``, which connects to the
-DRAM controller through a TileLink to AXI converter.
+타일들은 ``SystemBus`` 에 연결되어 L2 캐시 뱅크에 연결됩니다. L2 캐시 뱅크는 ``MemoryBus`` 에 연결되고, 이는 TileLink에서 AXI 변환기를 통해 DRAM 컨트롤러에 연결됩니다.
 
-To learn more about the memory hierarchy, see :ref:`Customization/Memory-Hierarchy:Memory Hierarchy`.
+메모리 계층에 대해 더 알아보려면 :ref:`Customization/Memory-Hierarchy:Memory Hierarchy` 섹션을 참조하십시오.
 
 MMIO
 ----
 
-For MMIO peripherals, the ``SystemBus`` connects to the ``ControlBus`` and ``PeripheryBus``.
+MMIO 주변 장치를 위해 ``SystemBus`` 는 ``ControlBus`` 및 ``PeripheryBus`` 에 연결됩니다.
 
-The ``ControlBus`` attaches standard peripherals like the BootROM, the
-Platform-Level Interrupt Controller (PLIC), the core-local interrupts (CLINT),
-and the Debug Unit.
+``ControlBus`` 는 BootROM, 플랫폼 수준 인터럽트 컨트롤러(PLIC), 코어 로컬 인터럽트(CLINT), 디버그 유닛과 같은 표준 주변 장치를 연결합니다.
 
-The BootROM contains the first stage bootloader, the first instructions to run
-when the system comes out of reset. It also contains the Device Tree, which is
-used by Linux to determine what other peripherals are attached.
+BootROM은 시스템이 리셋에서 벗어날 때 실행되는 첫 번째 명령어인 1단계 부트로더를 포함하고 있습니다. 또한 Linux가 다른 주변 장치가 무엇인지 확인하는 데 사용하는 장치 트리도 포함되어 있습니다.
 
-The PLIC aggregates and masks device interrupts and external interrupts.
+PLIC은 장치 인터럽트 및 외부 인터럽트를 집계하고 마스킹합니다.
 
-The core-local interrupts include software interrupts and timer interrupts for
-each CPU.
+코어 로컬 인터럽트에는 각 CPU에 대한 소프트웨어 인터럽트와 타이머 인터럽트가 포함됩니다.
 
-The Debug Unit is used to control the chip externally. It can be used to load
-data and instructions to memory or pull data from memory. It can be controlled
-through a custom DMI or standard JTAG protocol.
+디버그 유닛은 칩을 외부에서 제어하는 데 사용됩니다. 이 유닛은 데이터를 메모리에 로드하거나 메모리에서 데이터를 추출하는 데 사용할 수 있습니다. 맞춤형 DMI 또는 표준 JTAG 프로토콜을 통해 제어할 수 있습니다.
 
-The ``PeripheryBus`` attaches additional peripherals like the NIC and Block Device.
-It can also optionally expose an external AXI4 port, which can be attached to
-vendor-supplied AXI4 IP.
+``PeripheryBus`` 는 NIC 및 블록 장치와 같은 추가 주변 장치를 연결합니다.
+또한 선택적으로 외부 AXI4 포트를 노출하여 공급업체 제공 AXI4 IP에 연결할 수 있습니다.
 
-To learn more about adding MMIO peripherals, check out the :ref:`mmio-accelerators`
-section.
+MMIO 주변 장치를 추가하는 방법에 대해 더 알아보려면 :ref:`mmio-accelerators` 섹션을 참조하십시오.
 
 DMA
 ---
 
-You can also add DMA devices that read and write directly from the memory
-system. These are attached to the ``FrontendBus``. The ``FrontendBus`` can also
-connect vendor-supplied AXI4 DMA devices through an AXI4 to TileLink converter.
+메모리 시스템에서 직접 읽고 쓸 수 있는 DMA 장치도 추가할 수 있습니다. 이러한 장치는 ``FrontendBus`` 에 연결됩니다. ``FrontendBus`` 는 AXI4에서 TileLink 변환기를 통해 공급업체 제공 AXI4 DMA 장치에도 연결할 수 있습니다.
 
-To learn more about adding DMA devices, see the :ref:`dma-devices` section.
+DMA 장치를 추가하는 방법에 대해 더 알아보려면 :ref:`dma-devices` 섹션을 참조하십시오.
+

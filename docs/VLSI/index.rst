@@ -1,8 +1,8 @@
 VLSI Flow
 ================================
 
-The Chipyard framework aims to provide wrappers for a general VLSI flow.
-In particular, we aim to support the Hammer physical design generator flow.
+Chipyard 프레임워크는 일반적인 VLSI 흐름을 위한 래퍼를 제공하는 것을 목표로 합니다.
+특히, Hammer 물리적 설계 생성기 흐름을 지원하는 것을 목표로 하고 있습니다.
 
 .. toctree::
    :maxdepth: 2
@@ -15,3 +15,4 @@ In particular, we aim to support the Hammer physical design generator flow.
    Sky130-Commercial-Tutorial
    Sky130-OpenROAD-Tutorial
    Advanced-Usage
+

@@ -3,74 +3,62 @@
 Diplomatic Widgets
 ==================
 
-RocketChip provides a library of diplomatic TileLink and AXI4 widgets.
-The most commonly used widgets are documented here. The TileLink widgets
-are available from ``freechips.rocketchip.tilelink`` and the AXI4 widgets
-from ``freechips.rocketchip.amba.axi4``.
+RocketChip은 TileLink 및 AXI4 위젯의 외교적 라이브러리를 제공합니다.
+가장 일반적으로 사용되는 위젯들은 여기에 문서화되어 있습니다. TileLink 위젯은 ``freechips.rocketchip.tilelink`` 에서 사용할 수 있으며, AXI4 위젯은 ``freechips.rocketchip.amba.axi4`` 에서 사용할 수 있습니다.
 
 TLBuffer
 --------
 
-A widget for buffering TileLink transactions. It simply instantiates queues
-for each of the 2 (or 5 for TL-C) decoupled channels. To configure the queue
-for each channel, you pass the constructor a
-``freechips.rocketchip.diplomacy.BufferParams`` object. The arguments for
-this case class are:
+TileLink 트랜잭션을 버퍼링하는 위젯입니다. 이는 각 채널(또는 TL-C의 경우 5개의 채널)에 대해 큐를 인스턴스화합니다. 각 채널에 대한 큐를 구성하려면 ``freechips.rocketchip.diplomacy.BufferParams`` 객체를 생성자에 전달합니다. 이 케이스 클래스의 인수는 다음과 같습니다:
 
- - ``depth: Int`` - The number of entries in the queue
- - ``flow: Boolean`` - If true, combinationally couple the valid signals so
-   that an input can be consumed on the same cycle it is enqueued.
- - ``pipe: Boolean`` - If true, combinationally couple the ready signals so
-   that single-entry queues can run at full rate.
+ - ``depth: Int`` - 큐의 항목 수
+ - ``flow: Boolean`` - true인 경우, 유효 신호를 조합적으로 결합하여 입력이 큐에 삽입된 같은 사이클에서 소비될 수 있도록 합니다.
+ - ``pipe: Boolean`` - true인 경우, 준비 신호를 조합적으로 결합하여 단일 항목 큐가 전체 속도로 작동할 수 있도록 합니다.
 
-There is an implicit conversion from ``Int`` available. If you pass an
-integer instead of a BufferParams object, the queue will be the depth
-given in the integer and ``flow`` and ``pipe`` will both be false.
+``Int``에서 암시적 변환이 가능합니다. ``BufferParams`` 객체 대신 정수를 전달하면, 큐는 주어진 정수의 깊이가 되며 ``flow`` 와 ``pipe`` 는 모두 false가 됩니다.
 
-You can also use one of the predefined BufferParams objects.
+또한 미리 정의된 BufferParams 객체를 사용할 수도 있습니다.
 
  - ``BufferParams.default`` = ``BufferParams(2, false, false)``
  - ``BufferParams.none`` = ``BufferParams(0, false, false)``
  - ``BufferParams.flow`` = ``BufferParams(1, true, false)``
  - ``BufferParams.pipe`` = ``BufferParams(1, false, true)``
 
-**Arguments:**
+**인수:**
 
-There are four constructors available with zero, one, two, or five arguments.
+네 가지 생성자가 있으며, 인수가 0개, 1개, 2개 또는 5개일 수 있습니다.
 
-The zero-argument constructor uses ``BufferParams.default`` for all of the
-channels.
+인수가 없는 생성자는 모든 채널에 대해 ``BufferParams.default`` 를 사용합니다.
 
-The single-argument constructor takes a ``BufferParams`` object to use for all
-channels.
+인수가 하나인 생성자는 모든 채널에 대해 사용할 ``BufferParams`` 객체를 가져옵니다.
 
-The arguments for the two-argument constructor are:
+두 인수 생성자의 인수는 다음과 같습니다:
 
- - ``ace: BufferParams`` - Parameters to use for the A, C, and E channels.
- - ``bd: BufferParams`` - Parameters to use for the B and D channels
+ - ``ace: BufferParams`` - A, C, E 채널에 사용할 매개변수.
+ - ``bd: BufferParams`` - B, D 채널에 사용할 매개변수.
 
-The arguments for the five-argument constructor are
+다섯 인수 생성자의 인수는 다음과 같습니다:
 
- - ``a: BufferParams`` - Buffer parameters for the A channel
- - ``b: BufferParams`` - Buffer parameters for the B channel
- - ``c: BufferParams`` - Buffer parameters for the C channel
- - ``d: BufferParams`` - Buffer parameters for the D channel
- - ``e: BufferParams`` - Buffer parameters for the E channel
+ - ``a: BufferParams`` - A 채널에 대한 버퍼 매개변수
+ - ``b: BufferParams`` - B 채널에 대한 버퍼 매개변수
+ - ``c: BufferParams`` - C 채널에 대한 버퍼 매개변수
+ - ``d: BufferParams`` - D 채널에 대한 버퍼 매개변수
+ - ``e: BufferParams`` - E 채널에 대한 버퍼 매개변수
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // Default settings
+    // 기본 설정
     manager0.node := TLBuffer() := client0.node
 
-    // Using implicit conversion to make buffer with 8 queue entries per channel
+    // 암시적 변환을 사용하여 채널당 8개의 큐 항목이 있는 버퍼 생성
     manager1.node := TLBuffer(8) := client1.node
 
-    // Use default on A channel but pipe on D channel
+    // A 채널에는 기본 설정을 사용하지만 D 채널에는 pipe 사용
     manager2.node := TLBuffer(BufferParams.default, BufferParams.pipe) := client2.node
 
-    // Only add queues for the A and D channel
+    // A 및 D 채널에만 큐 추가
     manager3.node := TLBuffer(
       BufferParams.default,
       BufferParams.none,
@@ -81,61 +69,55 @@ The arguments for the five-argument constructor are
 AXI4Buffer
 ----------
 
-Similar to the :ref:`TileLink-Diplomacy-Reference/Widgets:TLBuffer`, but for AXI4. It also takes ``BufferParams`` objects
-as arguments.
+:ref:`TileLink-Diplomacy-Reference/Widgets:TLBuffer` 와 유사하지만 AXI4용입니다. 이 위젯도 ``BufferParams`` 객체를 인수로 받습니다.
 
-**Arguments:**
+**인수:**
 
-Like TLBuffer, AXI4Buffer has zero, one, two, and five-argument constructors.
+TLBuffer와 마찬가지로 AXI4Buffer에는 0개, 1개, 2개, 5개의 인수를 가진 생성자가 있습니다.
 
-The zero-argument constructor uses the default BufferParams for all channels.
+인수가 없는 생성자는 모든 채널에 대해 기본 BufferParams를 사용합니다.
 
-The one-argument constructor uses the provided BufferParams for all channels.
+인수가 하나인 생성자는 제공된 BufferParams를 모든 채널에 사용합니다.
 
-The two-argument constructor has the following arguments.
+두 인수 생성자의 인수는 다음과 같습니다:
 
- - ``aw: BufferParams`` - Buffer parameters for the "ar", "aw", and "w" channels.
- - ``br: BufferParams`` - Buffer parameters for the "b", and "r" channels.
+ - ``aw: BufferParams`` - "ar", "aw", "w" 채널에 대한 버퍼 매개변수.
+ - ``br: BufferParams`` - "b", "r" 채널에 대한 버퍼 매개변수.
 
-The five-argument constructor has the following arguments
+다섯 인수 생성자의 인수는 다음과 같습니다:
 
- - ``aw: BufferParams`` - Buffer parameters for the "ar" channel
- - ``w: BufferParams`` - Buffer parameters for the "w" channel
- - ``b: BufferParams`` - Buffer parameters for the "b" channel
- - ``ar: BufferParams`` - Buffer parameters for the "ar" channel
- - ``r: BufferParams`` - Buffer parameters for the "r" channel
+ - ``aw: BufferParams`` - "ar" 채널에 대한 버퍼 매개변수
+ - ``w: BufferParams`` - "w" 채널에 대한 버퍼 매개변수
+ - ``b: BufferParams`` - "b" 채널에 대한 버퍼 매개변수
+ - ``ar: BufferParams`` - "ar" 채널에 대한 버퍼 매개변수
+ - ``r: BufferParams`` - "r" 채널에 대한 버퍼 매개변수
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // Default settings
+    // 기본 설정
     slave0.node := AXI4Buffer() := master0.node
 
-    // Using implicit conversion to make buffer with 8 queue entries per channel
+    // 암시적 변환을 사용하여 채널당 8개의 큐 항목이 있는 버퍼 생성
     slave1.node := AXI4Buffer(8) := master1.node
 
-    // Use default on aw/w/ar channel but pipe on b/r channel
+    // aw/w/ar 채널에는 기본 설정을 사용하지만 b/r 채널에는 pipe 사용
     slave2.node := AXI4Buffer(BufferParams.default, BufferParams.pipe) := master2.node
 
-    // Single-entry queues for aw, b, and ar but two-entry queues for w and r
+    // aw, b, ar에는 단일 항목 큐, w와 r에는 2항목 큐
     slave3.node := AXI4Buffer(1, 2, 1, 1, 2) := master3.node
 
 AXI4UserYanker
 --------------
 
-This widget takes an AXI4 port that has a user field and turns it into
-one without a user field. The values of the user field from input AR and AW
-requests is kept in internal queues associated with the ARID/AWID, which is
-then used to associate the correct user field to the responses.
+이 위젯은 사용자 필드를 가진 AXI4 포트를 받아서 사용자 필드가 없는 포트로 변환합니다. 입력 AR 및 AW 요청의 사용자 필드 값은 ARID/AWID와 연관된 내부 큐에 저장되며, 이는 응답에 올바른 사용자 필드를 연결하는 데 사용됩니다.
 
-**Arguments:**
+**인수:**
 
- - ``capMaxFlight: Option[Int]`` - (optional) An option which can hold the
-   number of requests that can be inflight for each ID. If ``None`` (the default),
-   the UserYanker will support the maximum number of inflight requests.
+ - ``capMaxFlight: Option[Int]`` - (선택 사항) 각 ID에 대해 처리할 수 있는 요청 수를 포함할 수 있는 옵션입니다. ``None`` (기본값)으로 설정된 경우, UserYanker는 최대 처리 가능한 요청 수를 지원합니다.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -144,16 +126,13 @@ then used to associate the correct user field to the responses.
 AXI4Deinterleaver
 -----------------
 
-Multi-beat AXI4 read responses for different IDs can potentially be interleaved.
-This widget reorders read responses from the slave so that all of the beats
-for a single transaction are consecutive.
+다른 ID에 대한 다중 비트 AXI4 읽기 응답이 교차될 수 있습니다. 이 위젯은 슬레이브로부터의 읽기 응답을 재정렬하여 단일 트랜잭션의 모든 비트가 연속되도록 합니다.
 
-**Arguments:**
+**인수:**
 
- - ``maxReadBytes: Int`` - The maximum number of bytes that can be read
-   in a single transaction.
+ - ``maxReadBytes: Int`` - 단일 트랜잭션에서 읽을 수 있는 최대 바이트 수.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -162,25 +141,23 @@ for a single transaction are consecutive.
 TLFragmenter
 ------------
 
-The TLFragmenter widget shrinks the maximum logical transfer size of the
-TileLink interface by breaking larger transactions into multiple smaller
-transactions.
+TLFragmenter 위젯은 TileLink 인터페이스의 최대 논리 전송 크기를 줄여 더 큰 트랜잭션을 여러 작은 트랜잭션으로 나눕니다.
 
-**Arguments:**
+**인수:**
 
- - ``minSize: Int`` - Minimum size of transfers supported by all outward managers.
- - ``maxSize: Int`` - Maximum size of transfers supported after the Fragmenter is applied.
- - ``alwaysMin: Boolean`` - (optional) Fragment all requests down to minSize (else fragment to maximum supported by manager). (default: false)
- - ``earlyAck: EarlyAck.T`` - (optional) Should a multibeat Put be acknowledged on the first beat or last beat?
-   Possible values (default: ``EarlyAck.None``):
+ - ``minSize: Int`` - 모든 외부 관리자에서 지원하는 전송의 최소 크기.
+ - ``maxSize: Int`` - Fragmenter가 적용된 후 지원되는 전송의 최대 크기.
+ - ``alwaysMin: Boolean`` - (선택 사항) 모든 요청을 minSize로 분할합니다 (그렇지 않으면 관리자가 지원하는 최대 크기로 분할). (기본값: false)
+ - ``earlyAck: EarlyAck.T`` - (선택 사항) 멀티비트 Put을 첫 번째 비트 또는 마지막 비트에서 확인해야 합니까?
+   가능한 값 (기본값: ``EarlyAck.None``):
 
-    - ``EarlyAck.AllPuts`` - always acknowledge on first beat.
-    - ``EarlyAck.PutFulls`` - acknowledge on first beat if PutFull, otherwise acknowledge on last beat.
-    - ``EarlyAck.None`` - always acknowledge on last beat.
+    - ``EarlyAck.AllPuts`` - 항상 첫 번째 비트에서 확인합니다.
+    - ``EarlyAck.PutFulls`` - PutFull일 경우 첫 번째 비트에서 확인하고, 그렇지 않으면 마지막 비트에서 확인합니다.
+    - ``EarlyAck.None`` - 항상 마지막 비트에서 확인합니다.
 
- - ``holdFirstDeny: Boolean`` - (optional) Allow the Fragmenter to unsafely combine multibeat Gets by taking the first denied for the whole burst. (default: false)
+ - ``holdFirstDeny: Boolean`` - (선택 사항) Fragmenter가 멀티비트 Get을 처음으로 거부된 비트로 조합하여 전체 버스트를 거부하게 허용합니다. (기본값: false)
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -191,22 +168,20 @@ transactions.
 
     axi4lite.node := AXI4Fragmenter() := axi4full.node
 
-**Additional Notes**
+**추가 참고 사항**
 
- - TLFragmenter modifies: PutFull, PutPartial, LogicalData, Get, Hint
- - TLFragmenter passes: ArithmeticData (truncated to minSize if alwaysMin)
- - TLFragmenter cannot modify acquire (could livelock); thus it is unsafe to put caches on both sides
+ - TLFragmenter는 다음을 수정합니다: PutFull, PutPartial, LogicalData, Get, Hint
+ - TLFragmenter는 다음을 통과합니다: ArithmeticData (
+
+alwaysMin이 설정된 경우 minSize로 잘립니다)
+ - TLFragmenter는 획득을 수정할 수 없습니다 (라이브록이 발생할 수 있음); 따라서 캐시를 양쪽에 모두 배치하는 것은 안전하지 않습니다.
 
 AXI4Fragmenter
 --------------
 
-The AXI4Fragmenter is similar to the :ref:`TileLink-Diplomacy-Reference/Widgets:TLFragmenter`.
-The AXI4Fragmenter slices all AXI accesses into simple power-of-two sized and aligned transfers
-of the largest size supported by the manager. This makes it suitable as a first stage transformation
-to apply before an AXI4=>TL bridge. It also makes it suitable for placing after TL=>AXI4 bridge
-driving an AXI-lite slave.
+AXI4Fragmenter는 :ref:`TileLink-Diplomacy-Reference/Widgets:TLFragmenter` 와 유사합니다. AXI4Fragmenter는 모든 AXI 액세스를 관리자가 지원하는 최대 크기의 단순 2의 거듭제곱 크기 및 정렬된 전송으로 분할합니다. 이는 AXI4=>TL 브리지를 적용하기 전에 첫 번째 단계 변환으로 적합합니다. 또한 TL=>AXI4 브리지를 통해 AXI-lite 슬레이브를 구동하는 경우에도 적합합니다.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -215,138 +190,108 @@ driving an AXI-lite slave.
 TLSourceShrinker
 ----------------
 
-The number of source IDs that a manager sees is usually computed based on the
-clients that connect to it. In some cases, you may wish to fix the
-number of source IDs. For instance, you might do this if you wish to export
-the TileLink port to a Verilog black box. This will pose a problem, however,
-if the clients require a larger number of source IDs. In this situation,
-you will want to use a TLSourceShrinker.
+관리자가 보는 소스 ID의 수는 일반적으로 연결된 클라이언트에 따라 계산됩니다. 일부 경우에는 소스 ID의 수를 고정하고 싶을 수 있습니다. 예를 들어, TileLink 포트를 Verilog 블랙 박스로 내보내려는 경우에 그렇게 할 수 있습니다. 그러나 클라이언트가 더 많은 소스 ID를 요구하는 경우 문제가 발생할 수 있습니다. 이 상황에서는 TLSourceShrinker를 사용해야 합니다.
 
-**Arguments:**
+**인수:**
 
- - ``maxInFlight: Int`` - The maximum number of source IDs that will be sent
-   from the TLSourceShrinker to the manager.
+ - ``maxInFlight: Int`` - TLSourceShrinker에서 관리자에게 전송될 소스 ID의 최대 수.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // client.node may have >16 source IDs
-    // manager.node will only see 16
+    // client.node는 16개 이상의 소스 ID를 가질 수 있음
+    // manager.node는 16개만 보게 됨
     manager.node := TLSourceShrinker(16) := client.node
 
 AXI4IdIndexer
 -------------
 
-The AXI4 equivalent of :ref:`TileLink-Diplomacy-Reference/Widgets:TLSourceShrinker`. This limits the number of
-AWID/ARID bits in the slave AXI4 interface. Useful for connecting to external
-or black box AXI4 ports.
+:ref:`TileLink-Diplomacy-Reference/Widgets:TLSourceShrinker` 의 AXI4 버전입니다. 이는 슬레이브 AXI4 인터페이스에서 AWID/ARID 비트 수를 제한합니다. 외부 또는 블랙 박스 AXI4 포트에 연결할 때 유용합니다.
 
-**Arguments:**
+**인수:**
 
- - ``idBits: Int`` - The number of ID bits on the slave interface.
+ - ``idBits: Int`` - 슬레이브 인터페이스의 ID 비트 수.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // master.node may have >16 unique IDs
-    // slave.node will only see 4 ID bits
+    // master.node는 16개 이상의 고유 ID를 가질 수 있음
+    // slave.node는 4개의 ID 비트만 보게 됨
     slave.node := AXI4IdIndexer(4) := master.node
 
-**Notes:**
+**참고 사항:**
 
-The AXI4IdIndexer will create a ``user`` field on the slave interface, as it
-stores the ID of the master requests in this field. If connecting to an AXI4
-interface that doesn't have a ``user`` field, you'll need to use the :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker`.
+AXI4IdIndexer는 슬레이브 인터페이스에 ``user`` 필드를 생성합니다. 이는 마스터 요청의 ID를 이 필드에 저장하기 때문입니다. ``user`` 필드가 없는 AXI4 인터페이스에 연결하려면 :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker` 를 사용해야 합니다.
 
 TLWidthWidget
 -------------
 
-This widget changes the physical width of the TileLink interface. The width
-of a TileLink interface is configured by managers, but sometimes you want
-the client to see a particular width.
+이 위젯은 TileLink 인터페이스의 물리적 너비를 변경합니다. TileLink 인터페이스의 너비는 관리자가 구성하지만 때로는 클라이언트가 특정 너비를 보도록 하고 싶을 수 있습니다.
 
-**Arguments:**
+**인수:**
 
- - ``innerBeatBytes: Int`` - The physical width (in bytes) seen by the client
+ - ``innerBeatBytes: Int`` - 클라이언트가 보는 물리적 너비(바이트 단위)
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // Assume the manager node sets beatBytes to 8
-    // With WidthWidget, client sees beatBytes of 4
+    // 관리 노드가 beatBytes를 8로 설정한다고 가정
+    // WidthWidget을 사용하여 클라이언트가 beatBytes 4를 보게 함
     manager.node := TLWidthWidget(4) := client.node
 
 TLFIFOFixer
 -----------
 
-TileLink managers that declare a FIFO domain must ensure that all requests to
-that domain from clients which have requested FIFO ordering see responses in
-order. However, they can only control the ordering of their own responses, and
-do not have control over how those responses interleave with responses from
-other managers in the same FIFO domain. Responsibility for ensuring FIFO order
-across managers goes to the TLFIFOFixer.
+FIFO 도메인을 선언하는 TileLink 관리자는 FIFO 정렬을 요청한 클라이언트로부터의 모든 요청이 정렬된 응답을 보도록 해야 합니다. 그러나 관리자는 자신의 응답의 정렬만 제어할 수 있으며, 동일한 FIFO 도메인 내의 다른 관리자의 응답과 이들이 어떻게 교차하는지 제어할 수 없습니다. 관리자를 초월한 FIFO 순서를 보장하는 책임은 TLFIFOFixer에게 있습니다.
 
-**Arguments:**
+**인수:**
 
- - ``policy: TLFIFOFixer.Policy`` - (optional) Which managers will the
-   TLFIFOFixer enforce ordering on? (default: ``TLFIFOFixer.all``)
+ - ``policy: TLFIFOFixer.Policy`` - (선택 사항) TLFIFOFixer가 어떤 관리자에 대해 순서를 강제할 것인가? (기본값: ``TLFIFOFixer.all``)
 
-The possible values of ``policy`` are:
+``policy`` 의 가능한 값은 다음과 같습니다:
 
- - ``TLFIFOFixer.all`` - All managers (including those without a FIFO domain)
-   will have ordering guaranteed
- - ``TLFIFOFixer.allFIFO`` - All managers that define a FIFO domain will have
-   ordering guaranteed
- - ``TLFIFOFixer.allVolatile`` - All managers that have a RegionType of
-   ``VOLATILE``, ``PUT_EFFECTS``, or ``GET_EFFECTS`` will have ordering
-   guaranteed (see :ref:`TileLink-Diplomacy-Reference/NodeTypes:Manager Node` for explanation of region types).
+ - ``TLFIFOFixer.all`` - FIFO 도메인을 정의하지 않은 관리자도 포함하여 모든 관리자에게 순서 보장
+ - ``TLFIFOFixer.allFIFO`` - FIFO 도메인을 정의한 모든 관리자에게 순서 보장
+ - ``TLFIFOFixer.allVolatile`` - ``VOLATILE`` , ``PUT_EFFECTS`` , ``GET_EFFECTS`` 의 RegionType을 가진 모든 관리자에게 순서 보장 (지역 유형 설명은 :ref:`TileLink-Diplomacy-Reference/NodeTypes:Manager Node` 참조)
 
 TLXbar and AXI4Xbar
 -------------------
 
-These are crossbar generators for TileLink and AXI4 which will route requests
-from TL client / AXI4 master nodes to TL manager / AXI4 slave nodes based on
-the addresses defined in the managers / slaves. Normally, these are constructed
-without arguments. However, you can change the arbitration policy, which
-determines which client ports get precedent in the arbiters. The default policy
-is ``TLArbiter.roundRobin``, but you can change it to ``TLArbiter.lowestIndexFirst``
-if you want a fixed arbitration precedence.
+이는 TileLink와 AXI4에 대한 크로스바 생성기로, TL 클라이언트/AXI4 마스터 노드의 요청을 관리자가 정의한 주소에 따라 TL 관리자/AXI4 슬레이브 노드로 라우팅합니다. 일반적으로 이들은 인수 없이 생성됩니다. 그러나 중재 정책을 변경하여 어떤 클라이언트 포트가 중재자에서 우선 순위를 가질지 결정할 수 있습니다. 기본 정책은 ``TLArbiter.roundRobin`` 이지만, 고정된 중재 우선 순위를 원할 경우 ``TLArbiter.lowestIndexFirst`` 로 변경할 수 있습니다.
 
-**Arguments:**
+**인수:**
 
-All arguments are optional.
+모든 인수는 선택 사항입니다.
 
- - ``arbitrationPolicy: TLArbiter.Policy`` - The arbitration policy to use.
- - ``maxFlightPerId: Int`` - (AXI4 only) The number of transactions with the
-   same ID that can be inflight at a time. (default: 7)
- - ``awQueueDepth: Int`` - (AXI4 only) The depth of the write address queue.
-   (default: 2)
+ - ``arbitrationPolicy: TLArbiter.Policy`` - 사용할 중재 정책.
+ - ``maxFlightPerId: Int`` - (AXI4 전용) 동일한 ID를 가진 트랜잭션이 동시에 처리될 수 있는 수. (기본값: 7)
+ - ``awQueueDepth: Int`` - (AXI4 전용) 쓰기 주소 큐의 깊이. (기본값: 2)
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
-    // Instantiate the crossbar lazy module
+    // 크로스바 레이지 모듈 인스턴스화
     val tlBus = LazyModule(new TLXbar)
 
-    // Connect a single input edge
+    // 단일 입력 엣지 연결
     tlBus.node := tlClient0.node
-    // Connect multiple input edges
+    // 다중 입력 엣지 연결
     tlBus.node :=* tlClient1.node
 
-    // Connect a single output edge
+    // 단일 출력 엣지 연결
     tlManager0.node := tlBus.node
-    // Connect multiple output edges
+    // 다중 출력 엣지 연결
     tlManager1.node :*= tlBus.node
 
-    // Instantiate a crossbar with lowestIndexFirst arbitration policy
-    // Yes, we still use the TLArbiter singleton even though this is AXI4
+    // lowestIndexFirst 중재 정책이 적용된 크로스바 인스턴스화
+    // 이게 AXI4여도 TLArbiter 싱글톤을 여전히 사용합니다.
     val axiBus = LazyModule(new AXI4Xbar(TLArbiter.lowestIndexFirst))
 
-    // The connections work the same as TL
+    // 연결은 TL과 동일하게 작동합니다.
     axiBus.node := axiClient0.node
     axiBus.node :=* axiClient1.node
     axiManager0.node := axiBus.node
@@ -357,12 +302,9 @@ All arguments are optional.
 TLToAXI4 and AXI4ToTL
 ---------------------
 
-These are converters between the TileLink and AXI4 protocols. TLToAXI4
-takes a TileLink client and connects to an AXI4 slave. AXI4ToTL takes an
-AXI4 master and connects to a TileLink manager. Generally you don't want to
-override the default arguments of the constructors for these widgets.
+이 위젯들은 TileLink와 AXI4 프로토콜 간의 변환기입니다. TLToAXI4는 TileLink 클라이언트를 받아 AXI4 슬레이브에 연결합니다. AXI4ToTL은 AXI4 마스터를 받아 TileLink 관리자에 연결합니다. 일반적으로 이러한 위젯의 생성자에 대한 기본 인수를 재정의하지 않는 것이 좋습니다.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -378,37 +320,25 @@ override the default arguments of the constructors for these widgets.
         AXI4Fragmenter() :=
         axi4master.node
 
-You will need to add an :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4Deinterleaver` after the TLToAXI4 converter
-because it cannot deal with interleaved read responses. The TLToAXI4 converter
-also uses the AXI4 user field to store some information, so you will need an
-:ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker` if you want to connect to an AXI4 port without user
-fields.
+TLToAXI4 변환기 이후에는 :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4Deinterleaver` 를 추가해야 합니다. TLToAXI4 변환기는 교차된 읽기 응답을 처리할 수 없기 때문입니다. TLToAXI4 변환기는 또한 AXI4 사용자 필드를 사용하여 일부 정보를 저장하므로, 사용자 필드가 없는 AXI4 포트에 연결하려면 :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker` 를 사용해야 합니다.
 
-Before you connect an AXI4 port to the AXI4ToTL widget, you will need to
-add an :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4Fragmenter` and :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker` because the converter cannot
-deal with multi-beat transactions or user fields.
+AXI4 포트를 AXI4ToTL 위젯에 연결하기 전에 :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4Fragmenter` 및 :ref:`TileLink-Diplomacy-Reference/Widgets:AXI4UserYanker` 를 추가해야 합니다. 변환기는 멀티비트 트랜잭션이나 사용자 필드를 처리할 수 없기 때문입니다.
 
 TLROM
 ------
 
-The TLROM widget provides a read-only memory that can be accessed using
-TileLink. Note: this widget is in the ``freechips.rocketchip.devices.tilelink``
-package, not the ``freechips.rocketchip.tilelink`` package like the others.
+TLROM 위젯은 TileLink를 사용하여 액세스할 수 있는 읽기 전용 메모리를 제공합니다. 참고: 이 위젯은 ``freechips.rocketchip.devices.tilelink`` 패키지에 있으며, 다른 것들과는 달리 ``freechips.rocketchip.tilelink`` 패키지에 없습니다.
 
-**Arguments:**
+**인수:**
 
- - ``base: BigInt`` - The base address of the memory
- - ``size: Int`` - The size of the memory in bytes
- - ``contentsDelayed: => Seq[Byte]`` - A function which, when called generates
-   the byte contents of the ROM.
- - ``executable: Boolean`` - (optional) Specify whether the CPU can fetch
-   instructions from the ROM (default: ``true``).
- - ``beatBytes: Int`` - (optional) The width of the interface in bytes.
-   (default: 4).
- - ``resources: Seq[Resource]`` - (optional) Sequence of resources to add to
-   the device tree.
+ - ``base: BigInt`` - 메모리의 기본 주소
+ - ``size: Int`` - 메모리의 크기(바이트 단위)
+ - ``contentsDelayed: => Seq[Byte]`` - 호출될 때 ROM의 바이트 내용을 생성하는 함수.
+ - ``executable: Boolean`` - (선택 사항) CPU가 ROM에서 명령어를 가져올 수 있는지 여부를 지정합니다. (기본값: ``true`` )
+ - ``beatBytes: Int`` - (선택 사항) 인터페이스의 너비(바이트 단위). (기본값: 4)
+ - ``resources: Seq[Resource]`` - (선택 사항) 디바이스 트리에 추가할 리소스의 시퀀스.
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -419,29 +349,24 @@ package, not the ``freechips.rocketchip.tilelink`` package like the others.
       beatBytes = 8))
     rom.node := TLFragmenter(8, 64) := client.node
 
-**Supported Operations:**
+**지원되는 작업:**
 
-The TLROM only supports single-beat reads. If you want to perform multi-beat
-reads, you should attach a TLFragmenter in front of the ROM.
+TLROM은 단일 비트 읽기만 지원합니다. 멀티비트 읽기를 수행하려면 ROM 앞에 TLFragmenter를 연결해야 합니다.
 
 TLRAM and AXI4RAM
 -----------------
 
-The TLRAM and AXI4RAM widgets provide read-write memories implemented as SRAMs.
+TLRAM과 AXI4RAM 위젯은 SRAM으로 구현된 읽기-쓰기 메모리를 제공합니다.
 
-**Arguments:**
+**인수:**
 
- - ``address: AddressSet`` - The address range that this RAM will cover.
- - ``cacheable: Boolean`` - (optional) Can the contents of this RAM be cached.
-   (default: ``true``)
- - ``executable: Boolean`` - (optional) Can the contents of this RAM be fetched
-   as instructions. (default: ``true``)
- - ``beatBytes: Int`` - (optional) Width of the TL/AXI4 interface in bytes.
-   (default: 4)
- - ``atomics: Boolean`` - (optional, TileLink only) Does the RAM support
-   atomic operations? (default: ``false``)
+ - ``address: AddressSet`` - 이 RAM이 커버할 주소 범위.
+ - ``cacheable: Boolean`` - (선택 사항) 이 RAM의 내용을 캐시할 수 있는지 여부. (기본값: ``true`` )
+ - ``executable: Boolean`` - (선택 사항) 이 RAM의 내용을 명령어로 가져올 수 있는지 여부. (기본값: ``true`` )
+ - ``beatBytes: Int`` - (선택 사항) TL/AXI4 인터페이스의 너비(바이트 단위). (기본값: 4)
+ - ``atomics: Boolean`` - (선택 사항, TileLink 전용) RAM이 원자적 작업을 지원합니까? (기본값: ``false`` )
 
-**Example Usage:**
+**사용 예:**
 
 .. code-block:: scala
 
@@ -456,12 +381,9 @@ The TLRAM and AXI4RAM widgets provide read-write memories implemented as SRAMs.
     tlram.node := xbar.node
     axiram := TLToAXI4() := xbar.node
 
-**Supported Operations:**
+**지원되는 작업:**
 
-TLRAM only supports single-beat TL-UL requests. If you set ``atomics`` to true,
-it will also support Logical and Arithmetic operations. Use a ``TLFragmenter``
-if you want multi-beat reads/writes.
+TLRAM은 단일 비트 TL-UL 요청만 지원합니다. ``atomics`` 를 true로 설정하면 Logical 및 Arithmetic 작업도 지원합니다. 멀티비트 읽기/쓰기를 원한다면 ``TLFragmenter`` 를 사용하십시오.
 
-AXI4RAM only supports AXI4-Lite operations, so multi-beat reads/writes and
-reads/writes smaller than full-width are not supported. Use an ``AXI4Fragmenter``
-if you want to use the full AXI4 protocol.
+AXI4RAM은 AXI4-Lite 작업만 지원하므로, 멀티비트 읽기/쓰기 및 전체 너비보다 작은 읽기/쓰기는 지원하지 않습니다. 전체 AXI4 프로토콜을 사용하려면 ``AXI4Fragmenter`` 를 사용하십시오.
+

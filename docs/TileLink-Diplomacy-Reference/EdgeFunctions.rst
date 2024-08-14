@@ -1,252 +1,207 @@
 TileLink Edge Object Methods
 ============================
 
-The edge object associated with a TileLink node has several helpful methods
-for constructing TileLink messages and retrieving data from them.
-
+TileLink 노드와 관련된 엣지 객체는 TileLink 메시지를 구성하고 데이터에서 정보를 검색하는 데 유용한 여러 가지 메서드를 제공합니다.
 
 Get
 ---
 
-Constructor for a TLBundleA encoding a ``Get`` message, which requests data
-from memory. The D channel response to this message will be an
-``AccessAckData``, which may have multiple beats.
+``Get`` 메시지를 인코딩하는 TLBundleA의 생성자입니다. 이 메시지는 메모리에서 데이터를 요청합니다. 이 메시지에 대한 D 채널 응답은 여러 비트(beats)를 가질 수 있는 ``AccessAckData`` 가 됩니다.
 
-**Arguments:**
+**인수:**
 
- - ``fromSource: UInt`` - Source ID for this transaction
- - ``toAddress: UInt`` - The address to read from
- - ``lgSize: UInt`` - Base two logarithm of the number of bytes to be read
+ - ``fromSource: UInt`` - 이 트랜잭션의 소스 ID
+ - ``toAddress: UInt`` - 읽을 주소
+ - ``lgSize: UInt`` - 읽을 바이트 수의 2의 로그 값
 
-**Returns:**
+**반환값:**
 
-A ``(Bool, TLBundleA)`` tuple. The first item in the pair is a boolean
-indicating whether or not the operation is legal for this edge. The second
-is the A channel bundle.
+``(Bool, TLBundleA)`` 튜플. 쌍의 첫 번째 항목은 이 엣지에서 작업이 합법적인지 여부를 나타내는 부울 값입니다. 두 번째 항목은 A 채널 번들입니다.
 
 Put
 ---
 
-Constructor for a TLBundleA encoding a ``PutFull`` or ``PutPartial`` message,
-which write data to memory. It will be a ``PutPartial`` if the ``mask`` is
-specified and a ``PutFull`` if it is omitted. The put may require multiple
-beats. If that is the case, only ``data`` and ``mask`` should change for each
-beat. All other fields must be the same for all beats in the transaction,
-including the address. The manager will respond to this message with a single
-``AccessAck``.
+``PutFull`` 또는 ``PutPartial`` 메시지를 인코딩하는 TLBundleA의 생성자입니다. 이는 메모리에 데이터를 쓰는 작업을 수행합니다. ``mask`` 가 지정되면 ``PutPartial`` 이 되고, 생략되면 ``PutFull`` 이 됩니다. 이 푸트(Put)는 여러 비트를 필요로 할 수 있습니다. 이 경우 각 비트에서 ``data`` 와 ``mask`` 만 변경되어야 합니다. 주소를 포함한 다른 모든 필드는 트랜잭션의 모든 비트에 대해 동일해야 합니다. 관리자는 이 메시지에 대해 단일 ``AccessAck`` 로 응답합니다.
 
-**Arguments:**
+**인수:**
 
- - ``fromSource: UInt`` - Source ID for this transaction.
- - ``toAddress: UInt`` - The address to write to.
- - ``lgSize: UInt`` - Base two logarithm of the number of bytes to be written.
- - ``data: UInt`` - The data to write on this beat.
- - ``mask: UInt`` - (optional) The write mask for this beat.
+ - ``fromSource: UInt`` - 이 트랜잭션의 소스 ID.
+ - ``toAddress: UInt`` - 쓸 주소.
+ - ``lgSize: UInt`` - 쓸 바이트 수의 2의 로그 값.
+ - ``data: UInt`` - 이 비트에서 쓸 데이터.
+ - ``mask: UInt`` - (선택 사항) 이 비트에서의 쓰기 마스크.
 
-**Returns:**
+**반환값:**
 
-A ``(Bool, TLBundleA)`` tuple. The first item in the pair is a boolean
-indicating whether or not the operation is legal for this edge. The second
-is the A channel bundle.
+``(Bool, TLBundleA)`` 튜플. 쌍의 첫 번째 항목은 이 엣지에서 작업이 합법적인지 여부를 나타내는 부울 값입니다. 두 번째 항목은 A 채널 번들입니다.
 
 Arithmetic
 ----------
 
-Constructor for a TLBundleA encoding an ``Arithmetic`` message, which is an
-atomic operation. The possible values for the ``atomic`` field are defined
-in the ``TLAtomics`` object. It can be ``MIN``, ``MAX``, ``MINU``, ``MAXU``, or
-``ADD``, which correspond to atomic minimum, maximum, unsigned minimum, unsigned
-maximum, or addition operations, respectively. The previous value at the
-memory location will be returned in the response, which will be in the form
-of an ``AccessAckData``.
+``Arithmetic`` 메시지를 인코딩하는 TLBundleA의 생성자입니다. 이는 원자적 연산(atomic operation)입니다. ``atomic`` 필드의 가능한 값은 ``TLAtomics`` 객체에 정의되어 있으며, ``MIN`` , ``MAX`` , ``MINU`` , ``MAXU`` , 또는 ``ADD`` 가 있습니다. 각각 원자적 최소값, 최대값, 부호 없는 최소값, 부호 없는 최대값 또는 덧셈 연산에 해당합니다. 응답으로는 메모리 위치의 이전 값이 반환되며, 이는 ``AccessAckData`` 형식으로 반환됩니다.
 
-**Arguments:**
+**인수:**
 
- - ``fromSource: UInt`` - Source ID for this transaction.
- - ``toAddress: UInt`` - The address to perform an arithmetic operation on.
- - ``lgSize: UInt`` - Base two logarithm of the number of bytes to operate on.
- - ``data: UInt`` - Right-hand operand of the arithmetic operation
- - ``atomic: UInt`` - Arithmetic operation type (from ``TLAtomics``)
+ - ``fromSource: UInt`` - 이 트랜잭션의 소스 ID.
+ - ``toAddress: UInt`` - 산술 연산을 수행할 주소.
+ - ``lgSize: UInt`` - 연산할 바이트 수의 2의 로그 값.
+ - ``data: UInt`` - 산술 연산의 오른쪽 피연산자
+ - ``atomic: UInt`` - 산술 연산 유형 (``TLAtomics`` 에서 가져옴)
 
-**Returns:**
+**반환값:**
 
-A ``(Bool, TLBundleA)`` tuple. The first item in the pair is a boolean
-indicating whether or not the operation is legal for this edge. The second
-is the A channel bundle.
+``(Bool, TLBundleA)`` 튜플. 쌍의 첫 번째 항목은 이 엣지에서 작업이 합법적인지 여부를 나타내는 부울 값입니다. 두 번째 항목은 A 채널 번들입니다.
 
 Logical
 -------
 
-Constructor for a TLBundleA encoding a ``Logical`` message, an atomic operation.
-The possible values for the ``atomic`` field are ``XOR``, ``OR``, ``AND``, and
-``SWAP``, which correspond to atomic bitwise exclusive or, bitwise inclusive or,
-bitwise and, and swap operations, respectively. The previous value at the
-memory location will be returned in an ``AccessAckData`` response.
+``Logical`` 메시지를 인코딩하는 TLBundleA의 생성자입니다. 이는 원자적 연산입니다. ``atomic`` 필드의 가능한 값은 ``XOR``, ``OR``, ``AND``, ``SWAP`` 이 있으며, 각각 원자적 배타적 논리합, 포함적 논리합, 논리곱 및 교환 연산에 해당합니다. 메모리 위치의 이전 값이 ``AccessAckData`` 응답으로 반환됩니다.
 
-**Arguments:**
+**인수:**
 
- - ``fromSource: UInt`` - Source ID for this transaction.
- - ``toAddress: UInt`` - The address to perform a logical operation on.
- - ``lgSize: UInt`` - Base two logarithm of the number of bytes to operate on.
- - ``data: UInt`` - Right-hand operand of the logical operation
- - ``atomic: UInt`` - Logical operation type (from ``TLAtomics``)
+ - ``fromSource: UInt`` - 이 트랜잭션의 소스 ID.
+ - ``toAddress: UInt`` - 논리 연산을 수행할 주소.
+ - ``lgSize: UInt`` - 연산할 바이트 수의 2의 로그 값.
+ - ``data: UInt`` - 논리 연산의 오른쪽 피연산자
+ - ``atomic: UInt`` - 논리 연산 유형 (``TLAtomics`` 에서 가져옴)
 
-**Returns:**
+**반환값:**
 
-A ``(Bool, TLBundleA)`` tuple. The first item in the pair is a boolean
-indicating whether or not the operation is legal for this edge. The second
-is the A channel bundle.
+``(Bool, TLBundleA)`` 튜플. 쌍의 첫 번째 항목은 이 엣지에서 작업이 합법적인지 여부를 나타내는 부울 값입니다. 두 번째 항목은 A 채널 번들입니다.
 
 Hint
 ----
 
-Constructor for a TLBundleA encoding a ``Hint`` message, which is used to
-send prefetch hints to caches. The ``param`` argument determines what kind
-of hint it is. The possible values come from the ``TLHints`` object and are
-``PREFETCH_READ`` and ``PREFETCH_WRITE``. The first one tells caches to
-acquire data in a shared state. The second one tells cache to acquire data
-in an exclusive state. If the cache this message reaches is a last-level cache,
-there won't be any difference. If the manager this message reaches is not a
-cache, it will simply be ignored. In any case, a ``HintAck`` message will be
-sent in response.
+``Hint`` 메시지를 인코딩하는 TLBundleA의 생성자입니다. 이는 캐시로 프리페치 힌트를 보내는 데 사용됩니다. ``param`` 인수는 힌트의 종류를 결정합니다. 가능한 값은 ``TLHints`` 객체에서 가져온 ``PREFETCH_READ`` 및 ``PREFETCH_WRITE`` 입니다. 첫 번째는 캐시가 데이터를 공유 상태로 획득하도록 지시하고, 두 번째는 캐시가 데이터를 독점 상태로 획득하도록 지시합니다. 이 메시지가 마지막 레벨 캐시에 도달하면 차이가 없을 것입니다. 이 메시지가 캐시가 아닌 관리자에 도달하면 단순히 무시됩니다. 어떤 경우에도 응답으로 ``HintAck`` 메시지가 전송됩니다.
 
-**Arguments:**
+**인수:**
 
- - ``fromSource: UInt`` - Source ID for this transaction.
- - ``toAddress: UInt`` - The address to prefetch
- - ``lgSize: UInt`` - Base two logarithm of the number of bytes to prefetch
- - ``param: UInt`` - Hint type (from TLHints)
+ - ``fromSource: UInt`` - 이 트랜잭션의 소스 ID.
+ - ``toAddress: UInt`` - 프리페치할 주소
+ - ``lgSize: UInt`` - 프리페치할 바이트 수의 2의 로그 값
+ - ``param: UInt`` - 힌트 유형 (TLHints에서 가져옴)
 
-**Returns:**
+**반환값:**
 
-A ``(Bool, TLBundleA)`` tuple. The first item in the pair is a boolean
-indicating whether or not the operation is legal for this edge. The second
-is the A channel bundle.
+``(Bool, TLBundleA)`` 튜플. 쌍의 첫 번째 항목은 이 엣지에서 작업이 합법적인지 여부를 나타내는 부울 값입니다. 두 번째 항목은 A 채널 번들입니다.
 
 AccessAck
 ---------
 
-Constructor for a TLBundleD encoding an ``AccessAck`` or ``AccessAckData``
-message. If the optional ``data`` field is supplied, it will be an
-``AccessAckData``. Otherwise, it will be an ``AccessAck``.
+``AccessAck`` 또는 ``AccessAckData`` 메시지를 인코딩하는 TLBundleD의 생성자입니다. 선택적 ``data`` 필드가 제공되면 ``AccessAckData`` 가 됩니다. 그렇지 않으면 ``AccessAck`` 이 됩니다.
 
-**Arguments**
+**인수**
 
- - ``a: TLBundleA`` - The A channel message to acknowledge
- - ``data: UInt`` - (optional) The data to send back
+ - ``a: TLBundleA`` - 확인할 A 채널 메시지
+ - ``data: UInt`` - (선택 사항) 다시 보낼 데이터
 
-**Returns:**
+**반환값:**
 
-The ``TLBundleD`` for the D channel message.
+D 채널 메시지에 대한 ``TLBundleD``.
 
 HintAck
 -------
 
-Constructor for a TLBundleD encoding a ``HintAck`` message.
+``HintAck`` 메시지를 인코딩하는 TLBundleD의 생성자입니다.
 
-**Arguments**
+**인수**
 
- - ``a: TLBundleA`` - The A channel message to acknowledge
+ - ``a: TLBundleA`` - 확인할 A 채널 메시지
 
-**Returns:**
+**반환값:**
 
-The ``TLBundleD`` for the D channel message.
+D 채널 메시지에 대한 ``TLBundleD``.
 
 first
 -----
 
-This method take a decoupled channel (either the A channel or D channel)
-and determines whether the current beat is the first beat in the transaction.
+이 메서드는 디커플드 채널(A 채널 또는 D 채널)을 받아 현재 비트가 트랜잭션의 첫 번째 비트인지 여부를 결정합니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: DecoupledIO[TLChannel]`` - The decoupled channel to snoop on.
+ - ``x: DecoupledIO[TLChannel]`` - 모니터링할 디커플드 채널.
 
-**Returns:**
+**반환값:**
 
-A ``Boolean`` which is true if the current beat is the first, or false otherwise.
+현재 비트가 첫 번째 비트이면 true를 반환하는 ``Boolean`` 값입니다. 그렇지 않으면 false입니다.
 
 last
 ----
 
-This method take a decoupled channel (either the A channel or D channel)
-and determines whether the current beat is the last in the transaction.
+이 메서드는 디커플드 채널(A 채널 또는 D 채널)을 받아 현재 비트가 트랜잭션의 마지막 비트인지 여부를 결정합니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: DecoupledIO[TLChannel]`` - The decoupled channel to snoop on.
+ - ``x: DecoupledIO[TLChannel]`` - 모니터링할 디커플드 채널.
 
-**Returns:**
+**반환값:**
 
-A ``Boolean`` which is true if the current beat is the last, or false otherwise.
+현재 비트가 마지막 비트이면 true를 반환하는 ``Boolean`` 값입니다. 그렇지 않으면 false입니다.
 
 done
 ----
 
-Equivalent to ``x.fire() && last(x)``.
+``x.fire() && last(x)`` 와 동등한 연산입니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: DecoupledIO[TLChannel]`` - The decoupled channel to snoop on.
+ - ``x: DecoupledIO[TLChannel]`` - 모니터링할 디커플드 채널.
 
-**Returns:**
+**반환값:**
 
-A ``Boolean`` which is true if the current beat is the last and a beat is
-sent on this cycle. False otherwise.
+현재 비트가 마지막 비트이고 이 사이클에 비트가 전송되면 true를 반환하는 ``Boolean`` 값입니다. 그렇지 않으면 false입니다.
 
 count
 -----
 
-This method take a decoupled channel (either the A channel or D channel) and
-determines the count (starting from 0) of the current beat in the transaction.
+이 메서드는 디커플드 채널(A 채널 또는 D 채널)을 받아 트랜잭션에서 현재 비트의 수(0부터 시작)를 결정합니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: DecoupledIO[TLChannel]`` - The decoupled channel to snoop on.
+ - ``x: DecoupledIO[TLChannel]`` - 모니터링할 디커플드 채널.
 
-**Returns:**
+**반환값:**
 
-A ``UInt`` indicating the count of the current beat.
+현재 비트의 수를 나타내는 ``UInt``.
 
 numBeats
 ---------
 
-This method takes in a TileLink bundle and gives the number of beats expected
-for the transaction.
+이 메서드는 TileLink 번들을 받아 트랜잭션에 필요한 비트 수를 제공합니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: TLChannel`` - The TileLink bundle to get the number of beats from
+ - ``x: TLChannel`` - 비트 수를 얻기 위한 TileLink 번들
 
-**Returns:**
+**반환값:**
 
-A ``UInt`` that is the number of beats in the current transaction.
+현재 트랜잭션의 비트 수인 ``UInt``.
 
 numBeats1
+
+
 ---------
 
-Similar to ``numBeats`` except it gives the number of beats minus one. If this
-is what you need, you should use this instead of doing ``numBeats - 1.U``, as
-this is more efficient.
+``numBeats``와 유사하지만 비트 수에서 1을 뺀 값을 제공합니다. 이것이 필요한 경우 ``numBeats - 1.U`` 대신 이 메서드를 사용하는 것이 더 효율적입니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: TLChannel`` - The TileLink bundle to get the number of beats from
+ - ``x: TLChannel`` - 비트 수를 얻기 위한 TileLink 번들
 
-**Returns:**
+**반환값:**
 
-A ``UInt`` that is the number of beats in the current transaction minus one.
+현재 트랜잭션의 비트 수에서 1을 뺀 값인 ``UInt``.
 
 hasData
 --------
 
-Determines whether the TileLink message contains data or not. This is true
-if the message is a PutFull, PutPartial, Arithmetic, Logical, or AccessAckData.
+TileLink 메시지에 데이터가 포함되어 있는지 여부를 결정합니다. 이 값이 true이면 메시지는 PutFull, PutPartial, Arithmetic, Logical 또는 AccessAckData입니다.
 
-**Arguments:**
+**인수:**
 
- - ``x: TLChannel`` - The TileLink bundle to check
+ - ``x: TLChannel`` - 확인할 TileLink 번들
 
-**Returns:**
+**반환값:**
 
-A ``Boolean`` that is true if the current message has data and false otherwise.
+현재 메시지에 데이터가 있으면 true, 그렇지 않으면 false인 ``Boolean`` 값.
+

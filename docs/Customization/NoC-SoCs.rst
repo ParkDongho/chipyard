@@ -3,34 +3,34 @@
 SoCs with NoC-based Interconnects
 ==================================
 
-The primary way to integrate a network-on-chip into a Chipyard SoC is to map one of the standard TileLink crossbar-based buses (System Bus, Memory Bus, Control Bus, etc.) to a Constellation-generated NoC.
+Chipyard SoC에 네트워크 온 칩(Network-on-Chip, NoC)을 통합하는 주요 방법은 표준 TileLink 크로스바 기반 버스(시스템 버스, 메모리 버스, 제어 버스 등)를 Constellation에서 생성된 NoC에 매핑하는 것입니다.
 
-The interconnect can be mapped as a "private" interconnect for the TileLink bus, in which case a dedicated interconnect to carry the bus traffic will be generated.
-Alternatively, the interconnect can be mapped to a shared global interconnect, in which case multiple TileLink buses can be transported over a single shared interconnect.
+인터커넥트는 TileLink 버스에 대한 "개별적인" 인터커넥트로 매핑될 수 있으며, 이 경우 버스 트래픽을 전달하기 위한 전용 인터커넥트가 생성됩니다.
+또는, 인터커넥트는 공유 글로벌 인터커넥트로 매핑될 수 있으며, 이 경우 여러 TileLink 버스가 단일 공유 인터커넥트를 통해 전송될 수 있습니다.
 
 Private Interconnects
 ---------------------
-An example of integrating dedicated private interconnects for the System Bus, Memory Bus, and Control Bus can be seen in the ``MultiNoCConfig`` of `generators/chipyard/src/main/scala/config/NoCConfigs.scala <https://github.com/ucb-bar/chipyard/blob/main/generators/chipyard/src/main/scala/config/NoCConfigs.scala>`__.
+시스템 버스, 메모리 버스, 제어 버스에 대한 전용 프라이빗 인터커넥트를 통합한 예시는 `generators/chipyard/src/main/scala/config/NoCConfigs.scala <https://github.com/ucb-bar/chipyard/blob/main/generators/chipyard/src/main/scala/config/NoCConfigs.scala>`__ 의 ``MultiNoCConfig`` 에서 확인할 수 있습니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/NoCConfigs.scala
     :language: scala
     :start-after: DOC include start: MultiNoCConfig
     :end-before: DOC include end: MultiNoCConfig
 
-Note that for each bus (``Sbus`` / ``Mbus`` / ``Cbus``), the configuration fragment provides both a parameterization of the private NoC, as well as a mapping between TileLink agents and physical NoC nodes.
+각 버스(``Sbus`` / ``Mbus`` / ``Cbus``)에 대해 구성 조각은 전용 NoC의 매개변수화와 TileLink 에이전트와 물리적 NoC 노드 간의 매핑을 모두 제공합니다.
 
-For more information on how to construct the NoC parameters, see the `Constellation documentation <http://constellation.readthedocs.io>`__.
-
+NoC 매개변수를 구성하는 방법에 대한 자세한 내용은 `Constellation documentation <http://constellation.readthedocs.io>`__ 를 참조하십시오.
 
 Shared Global Interconnect
 ---------------------------
-An example of integrating a single global interconnect that supports transporting multiple TileLink buses can be seen in the ``SharedNoCConfig`` of `generators/chipyard/src/main/scala/config/NoCConfigs.scala <https://github.com/ucb-bar/chipyard/blob/main/generators/chipyard/src/main/scala/config/NoCConfigs.scala>`__.
+여러 TileLink 버스의 전송을 지원하는 단일 글로벌 인터커넥트를 통합한 예시는 `generators/chipyard/src/main/scala/config/NoCConfigs.scala <https://github.com/ucb-bar/chipyard/blob/main/generators/chipyard/src/main/scala/config/NoCConfigs.scala>`__ 의 ``SharedNoCConfig`` 에서 확인할 수 있습니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/NoCConfigs.scala
     :language: scala
     :start-after: DOC include start: SharedNoCConfig
     :end-before: DOC include end: SharedNoCConfig
 
-Note that for each bus, the configuration fragment provides only the mapping between TileLink agents and physical NoC nodes, while a separate fragement provides the configuration for the global interconnect.
+각 버스에 대해, 구성 조각은 TileLink 에이전트와 물리적 NoC 노드 간의 매핑만 제공하며, 글로벌 인터커넥트의 구성은 별도의 조각에서 제공합니다.
 
-For more information on how to construct the NoC parameters, see the `Constellation documentation <http://constellation.readthedocs.io>`__.
+NoC 매개변수를 구성하는 방법에 대한 자세한 내용은 `Constellation documentation <http://constellation.readthedocs.io>`__ 를 참조하십시오.
+

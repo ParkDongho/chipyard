@@ -1,35 +1,35 @@
 Customization
 ================================
 
-These guides will walk you through customization of your system-on-chip:
+이 가이드는 시스템 온 칩(SoC)을 사용자 정의하는 방법을 안내합니다:
 
-- Constructing heterogenous systems-on-chip using the existing Chipyard generators and configuration system.
+- 기존 Chipyard 생성기와 구성 시스템을 사용하여 이기종 시스템 온 칩을 구성하는 방법
 
-- Constructing SoCs with a NoC (network-on-chip) based interconnect using Constellation
+- Constellation을 사용하여 NoC(네트워크 온 칩) 기반의 인터커넥트를 갖춘 SoC를 구성하는 방법
 
-- How to include your custom Chisel sources in the Chipyard build system
+- 사용자 정의 Chisel 소스를 Chipyard 빌드 시스템에 포함하는 방법
 
-- Adding custom core
+- 사용자 정의 코어 추가 방법
 
-- Adding custom RoCC accelerators to an existing Chipyard core (BOOM or Rocket)
+- 기존 Chipyard 코어(BOOM 또는 Rocket)에 사용자 정의 RoCC 가속기를 추가하는 방법
 
-- Adding custom MMIO widgets to the Chipyard memory system by Tilelink or AXI4, with custom Top-level IOs
+- 사용자 정의 상위 레벨 IO와 함께 TileLink 또는 AXI4를 통해 Chipyard 메모리 시스템에 사용자 정의 MMIO 위젯을 추가하는 방법
 
-- Adding custom Dsptools based blocks as MMIO widgets.
+- Dsptools 기반 블록을 MMIO 위젯으로 추가하는 방법
 
-- Standard practices for using Keys, Traits, and Configs to parameterize your design
+- Keys, Traits, Configs를 사용하여 설계를 매개변수화하는 표준 관행
 
-- Customizing the memory hierarchy
+- 메모리 계층 구조를 사용자 정의하는 방법
 
-- Connect widgets which act as TileLink masters
+- TileLink 마스터로 작동하는 위젯 연결 방법
 
-- Adding custom blackboxed Verilog to a Chipyard design
+- Chipyard 설계에 사용자 정의 블랙박스 Verilog를 추가하는 방법
 
-We also provide information on:
+또한 다음에 대한 정보도 제공합니다:
 
-- The boot process for Chipyard SoCs
+- Chipyard SoC의 부팅 프로세스
 
-We recommend reading all these pages in order. Hit next to get started!
+이 페이지를 순서대로 읽는 것을 권장합니다. 시작하려면 '다음'을 클릭하세요!
 
 .. toctree::
    :maxdepth: 2
@@ -49,3 +49,4 @@ We recommend reading all these pages in order. Hit next to get started!
    Memory-Hierarchy
    Boot-Process
    IOBinders
+

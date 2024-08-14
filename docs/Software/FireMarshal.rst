@@ -3,23 +3,11 @@
 FireMarshal
 =================
 
-FireMarshal is a workload generation tool for RISC-V based systems. It
-currently only supports the FireSim FPGA-accelerated simulation platform.
+FireMarshal은 RISC-V 기반 시스템을 위한 워크로드 생성 도구입니다. 현재 FireMarshal은 FireSim FPGA 가속 시뮬레이션 플랫폼만 지원합니다.
 
-**Workloads** in FireMarshal consist of a series of **Jobs** that are assigned
-to logical nodes in the target system. If no jobs are specified, then the
-workload is considered ``uniform`` and only a single image will be produced for
-all nodes in the system. Workloads are described by a ``json`` file and a
-corresponding workload directory and can inherit their definitions from
-existing workloads. Typically, workload configurations are kept in
-``workloads/`` although you can use any directory you like. We provide a few
-basic workloads to start with including buildroot or Fedora-based linux
-distributions and bare-metal.
+FireMarshal에서 **Workloads** 는 타겟 시스템의 논리적 노드에 할당된 일련의 **Jobs** 로 구성됩니다. 만약 작업이 지정되지 않은 경우, 워크로드는 ``uniform`` 으로 간주되며 시스템의 모든 노드에 대해 단일 이미지가 생성됩니다. 워크로드는 ``json`` 파일과 해당 워크로드 디렉토리로 설명되며, 기존 워크로드로부터 정의를 상속받을 수 있습니다. 일반적으로 워크로드 구성은 ``workloads/`` 에 보관되지만, 원하는 디렉토리를 사용할 수 있습니다. 시작하기 위한 몇 가지 기본 워크로드가 제공되며, 여기에는 buildroot 또는 Fedora 기반의 리눅스 배포판과 베어 메탈이 포함됩니다.
 
-Once you define a workload, the ``marshal`` command will produce a
-corresponding boot-binary and rootfs for each job in the workload. This binary
-and rootfs can then be launched on qemu or spike (for functional simulation), or
-installed to a platform for running on real RTL (currently only FireSim is
-automated).
+워크로드를 정의한 후, ``marshal`` 명령은 워크로드의 각 작업에 대한 부팅 바이너리와 rootfs를 생성합니다. 이 바이너리와 rootfs는 qemu 또는 spike(기능적 시뮬레이션)에서 실행되거나 실제 RTL에서 실행하기 위해 플랫폼에 설치될 수 있습니다(현재는 FireSim만 자동화 지원).
 
-To get started, checkout the full `FireMarshal documentation <https://firemarshal.readthedocs.io/en/latest/index.html>`_.
+시작하려면, 전체 `FireMarshal 문서 <https://firemarshal.readthedocs.io/en/latest/index.html>`_ 를 참조하십시오.
+

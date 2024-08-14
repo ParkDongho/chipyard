@@ -1,8 +1,9 @@
 Mempress
 ====================================
 
-Mempress is a RoCC accelerator that generates memory requests through TileLink. It sends out requests as hard as it can to stress test the memory hierarchy of the Chipyard/Rocketchip-based SoC.
+Mempress는 TileLink를 통해 메모리 요청을 생성하는 RoCC 가속기입니다. 이 가속기는 Chipyard/Rocketchip 기반 SoC의 메모리 계층을 스트레스 테스트하기 위해 가능한 한 많은 요청을 보냅니다.
 
-Mempress can generate multiple **streams** of memory requests. Each stream can be set up to generate read or write requests and configured to generate strided or random access patterns. Furthermore, the memory footprint of each stream is also configurable.
+Mempress는 여러 **스트림** 의 메모리 요청을 생성할 수 있습니다. 각 스트림은 읽기 또는 쓰기 요청을 생성하도록 설정할 수 있으며, 스트라이드 또는 랜덤 액세스 패턴을 생성하도록 구성할 수 있습니다. 또한, 각 스트림의 메모리 풋프린트도 구성 가능합니다.
 
-To add the Mempress unit into the SoC, you should add the ``mempress.WithMemPress`` config fragment to the SoC configurations.
+SoC에 Mempress 유닛을 추가하려면 SoC 구성에 ``mempress.WithMemPress`` 구성 조각을 추가해야 합니다.
+

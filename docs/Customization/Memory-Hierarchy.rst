@@ -6,102 +6,69 @@ Memory Hierarchy
 The L1 Caches
 --------------
 
-Each CPU tile has an L1 instruction cache and L1 data cache. The size and
-associativity of these caches can be configured. The default ``RocketConfig``
-uses 16 KiB, 4-way set-associative instruction and data caches. However,
-if you use the ``WithNMedCores`` or ``WithNSmallCores`` configurations, you can
-configure 4 KiB direct-mapped caches for L1I and L1D.
+각 CPU 타일에는 L1 명령어 캐시와 L1 데이터 캐시가 있습니다. 이 캐시들의 크기와 연관도(associativity)는 설정할 수 있습니다. 기본 ``RocketConfig`` 는 16 KiB, 4-way set-associative 명령어 및 데이터 캐시를 사용합니다. 하지만, ``WithNMedCores`` 또는 ``WithNSmallCores`` 구성에서는 L1I 및 L1D에 대해 4 KiB 직접 매핑된 캐시를 구성할 수 있습니다.
 
-If you only want to change the size or associativity, there are config
-fragments for those too. See :ref:`Customization/Keys-Traits-Configs:Config Fragments` for how to add these to a custom ``Config``.
+크기나 연관도만 변경하고 싶다면, 이를 위한 설정 조각(config fragments)도 있습니다. 이러한 설정 조각을 사용자 정의 ``Config`` 에 추가하는 방법은 :ref:`Customization/Keys-Traits-Configs:Config Fragments` 를 참조하십시오.
 
 .. code-block:: scala
 
-         new freechips.rocketchip.subsystem.WithL1ICacheSets(128) ++  // change rocket I$
-         new freechips.rocketchip.subsystem.WithL1ICacheWays(2) ++    // change rocket I$
-         new freechips.rocketchip.subsystem.WithL1DCacheSets(128) ++  // change rocket D$
-         new freechips.rocketchip.subsystem.WithL1DCacheWays(2) ++    // change rocket D$
+         new freechips.rocketchip.subsystem.WithL1ICacheSets(128) ++  // rocket I$ 크기 변경
+         new freechips.rocketchip.subsystem.WithL1ICacheWays(2) ++    // rocket I$ 연관도 변경
+         new freechips.rocketchip.subsystem.WithL1DCacheSets(128) ++  // rocket D$ 크기 변경
+         new freechips.rocketchip.subsystem.WithL1DCacheWays(2) ++    // rocket D$ 연관도 변경
 
 
-You can also configure the L1 data cache as an data scratchpad instead.
-However, there are some limitations on this. If you are using a data scratchpad,
-you can only use a single core and you cannot give the design an external DRAM.
-Note that these configurations fully remove the L2 cache and mbus.
-
+L1 데이터 캐시를 데이터 스크래치패드로 구성할 수도 있습니다.
+그러나 여기에는 몇 가지 제한 사항이 있습니다. 데이터 스크래치패드를 사용하는 경우, 단일 코어만 사용할 수 있으며 외부 DRAM을 설계에 추가할 수 없습니다.
+이러한 설정은 L2 캐시와 메모리 버스를 완전히 제거합니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/RocketConfigs.scala
     :language: scala
     :start-after: DOC include start: l1scratchpadrocket
     :end-before: DOC include end: l1scratchpadrocket
 
-
-This configuration fully removes the L2 cache and memory bus by setting the
-number of channels and number of banks to 0.
+이 설정은 채널 수와 뱅크 수를 0으로 설정하여 L2 캐시와 메모리 버스를 완전히 제거합니다.
 
 The System Bus
 --------------
 
-The system bus is the TileLink network that sits between the tiles and the L2
-agents and MMIO peripherals. Ordinarily, it is a fully-connected crossbar, but
-a network-on-chip-based implementation can be generated using Constellation.
-See :ref:`Customization/NoC-SoCs:SoCs with NoC-based Interconnects` for more.
+시스템 버스는 타일과 L2 에이전트 및 MMIO 주변 장치 사이에 위치한 TileLink 네트워크입니다. 일반적으로 이는 완전 연결된 크로스바이지만, Constellation을 사용하여 네트워크 온 칩 기반 구현을 생성할 수 있습니다.
+자세한 내용은 :ref:`Customization/NoC-SoCs:SoCs with NoC-based Interconnects` 를 참조하십시오.
 
 The Inclusive Last-Level Cache
 ---------------------------------
 
-The default ``RocketConfig`` provided in the Chipyard example project uses the Rocket-Chip
-InclusiveCache generator to produce a shared L2 cache. In the default
-configuration, the L2 uses a single cache bank with 512 KiB capacity and 8-way
-set-associativity. However, you can change these parameters to obtain your
-desired cache configuration. The main restriction is that the number of ways
-and the number of banks must be powers of 2.
+Chipyard 예제 프로젝트에서 제공되는 기본 ``RocketConfig`` 는 Rocket-Chip InclusiveCache 생성기를 사용하여 공유 L2 캐시를 생성합니다. 기본 설정에서 L2는 512 KiB 용량과 8-way set-associativity를 갖는 단일 캐시 뱅크를 사용합니다. 그러나 이러한 매개변수를 변경하여 원하는 캐시 구성을 얻을 수 있습니다. 주요 제한 사항은 ways 수와 뱅크 수가 2의 거듭제곱이어야 한다는 것입니다.
 
-Refer to the ``CacheParameters`` object defined in ``rocket-chip-inclusive-cache`` for
-customization options.
+맞춤 설정 옵션에 대한 자세한 내용은 ``rocket-chip-inclusive-cache`` 에 정의된 ``CacheParameters`` 객체를 참조하십시오.
 
 The Broadcast Hub
 -----------------
 
-If you do not want to use the L2 cache (say, for a resource-limited embedded
-design), you can create a configuration without it. Instead of using the L2
-cache, you will instead use RocketChip's TileLink broadcast hub.
-To make such a configuration, you can just copy the definition of
-``RocketConfig`` but omit the ``WithInclusiveCache`` config fragment from the
-list of included mixims.
+L2 캐시를 사용하지 않으려면(예: 리소스가 제한된 임베디드 설계를 위해), L2 캐시 없이 구성을 생성할 수 있습니다. L2 캐시를 사용하는 대신, RocketChip의 TileLink 브로드캐스트 허브를 사용할 수 있습니다.
+이러한 구성을 만들려면 ``RocketConfig`` 의 정의를 복사하고 포함된 믹스인 목록에서 ``WithInclusiveCache`` 구성 조각을 생략하면 됩니다.
 
-If you want to reduce the resources used even further, you can configure
-the Broadcast Hub to use a bufferless design. This config fragment is
-``freechips.rocketchip.subsystem.WithBufferlessBroadcastHub``.
-
+리소스 사용을 더욱 줄이려면, 브로드캐스트 허브를 버퍼가 없는 디자인으로 구성할 수 있습니다. 이 구성 조각은 ``freechips.rocketchip.subsystem.WithBufferlessBroadcastHub`` 입니다.
 
 The Outer Memory System
 -----------------------
 
-The L2 coherence agent (either L2 cache or Broadcast Hub) makes requests to
-an outer memory system consisting of an AXI4-compatible DRAM controller.
+L2 일관성 에이전트(L2 캐시 또는 브로드캐스트 허브)는 AXI4 호환 DRAM 컨트롤러로 구성된 외부 메모리 시스템에 요청을 보냅니다.
 
-The default configuration uses a single memory channel, but you can configure
-the system to use multiple channels. As with the number of L2 banks, the
-number of DRAM channels is restricted to powers of two.
+기본 설정은 단일 메모리 채널을 사용하지만, 여러 채널을 사용하는 것으로 시스템을 구성할 수 있습니다. L2 뱅크 수와 마찬가지로 DRAM 채널 수는 2의 거듭제곱으로 제한됩니다.
 
 .. code-block:: scala
 
     new freechips.rocketchip.subsystem.WithNMemoryChannels(2)
 
-In VCS and Verilator simulation, the DRAM is simulated using the
-``SimAXIMem`` module, which simply attaches a single-cycle SRAM to each
-memory channel.
+VCS 및 Verilator 시뮬레이션에서 DRAM은 각 메모리 채널에 단일 사이클 SRAM을 연결하는 ``SimAXIMem`` 모듈을 사용하여 시뮬레이션됩니다.
 
-Instead of connecting to off-chip DRAM, you can instead connect a scratchpad
-and remove the off-chip link. This is done by adding a fragment like
-``testchipip.soc.WithScratchpad`` to your configuration and removing the
-memory port with ``freechips.rocketchip.subsystem.WithNoMemPort``.
+외부 DRAM에 연결하는 대신, 스크래치패드를 연결하고 외부 연결을 제거할 수 있습니다. 이는 구성에 ``testchipip.soc.WithScratchpad`` 조각을 추가하고 ``freechips.rocketchip.subsystem.WithNoMemPort`` 로 메모리 포트를 제거하여 수행됩니다.
 
 .. literalinclude:: ../../generators/chipyard/src/main/scala/config/MemorySystemConfigs.scala
     :language: scala
     :start-after: DOC include start: mbusscratchpadrocket
     :end-before: DOC include end: mbusscratchpadrocket
 
-If you want a more realistic memory simulation, you can use FireSim, which
-can simulate the timing of DDR3 controllers. More documentation on FireSim
-memory models is available in the `FireSim docs <https://docs.fires.im/en/latest/>`_.
+보다 현실적인 메모리 시뮬레이션이 필요한 경우, DDR3 컨트롤러의 타이밍을 시뮬레이션할 수 있는 FireSim을 사용할 수 있습니다. FireSim 메모리 모델에 대한 자세한 문서는 `FireSim docs <https://docs.fires.im/en/latest/>`_ 에서 확인할 수 있습니다.
+

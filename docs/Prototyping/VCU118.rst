@@ -4,10 +4,7 @@ Running a Design on VCU118
 Basic VCU118 Design
 -------------------
 
-The default Xilinx VCU118 harness is setup to have UART, a SPI SDCard, and DDR backing memory.
-This allows it to run RISC-V Linux from an SDCard while piping the terminal over UART to the host machine (the machine connected to the VCU118).
-To extend this design, you can create your own Chipyard configuration and add the ``WithVCU118Tweaks`` located in ``fpga/src/main/scala/vcu118/Configs.scala``.
-Adding this config fragment will enable and connect the UART, SPI SDCard, and DDR backing memory to your Chipyard design/config.
+기본 Xilinx VCU118 하네스는 UART, SPI SDCard 및 DDR 백업 메모리를 설정하도록 구성되어 있습니다. 이를 통해 SDCard에서 RISC-V Linux를 실행하면서 터미널을 UART를 통해 VCU118에 연결된 호스트 머신으로 전송할 수 있습니다. 이 디자인을 확장하려면, 자신만의 Chipyard 구성을 만들고 ``fpga/src/main/scala/vcu118/Configs.scala`` 에 있는 ``WithVCU118Tweaks`` 를 추가할 수 있습니다. 이 구성 조각을 추가하면 UART, SPI SDCard 및 DDR 백업 메모리가 Chipyard 디자인/구성에 연결되고 활성화됩니다.
 
 .. literalinclude:: ../../fpga/src/main/scala/vcu118/Configs.scala
     :language: scala
@@ -17,78 +14,55 @@ Adding this config fragment will enable and connect the UART, SPI SDCard, and DD
 Brief Implementation Description + More Complicated Designs
 -----------------------------------------------------------
 
-The basis for a VCU118 design revolves around creating a special test harness to connect the external IOs to your Chipyard design.
-This is done with the ``VCU118TestHarness`` in the basic default VCU118 FPGA target.
-The ``VCU118TestHarness`` (located in ``fpga/src/main/scala/vcu118/TestHarness.scala``) uses ``Overlays`` that connect to the VCU118 external IOs.
-Generally, the ``Overlays`` take an IO from the ``ChipTop`` (labeled as ``topDesign`` in the file) when "placed" and connect it to the external IO and generate necessary Vivado collateral.
-For example, the following shows a UART ``Overlay`` being "placed" into the design with a IO input called ``io_uart_bb``.
+VCU118 디자인의 기본은 외부 IO를 Chipyard 디자인에 연결하기 위한 특수 테스트 하네스를 만드는 것에 있습니다. 이는 기본 VCU118 FPGA 타겟에서 ``VCU118TestHarness`` 를 사용하여 이루어집니다. ``VCU118TestHarness`` (``fpga/src/main/scala/vcu118/TestHarness.scala`` 에 위치)는 VCU118 외부 IO에 연결되는 ``Overlays`` 를 사용합니다. 일반적으로 ``Overlays`` 는 ``ChipTop`` (파일에서 ``topDesign``으로 표시됨)에서 IO를 가져와 "배치"하고 외부 IO에 연결하며 필요한 Vivado 부수 자료를 생성합니다. 예를 들어, 아래는 ``io_uart_bb`` 라는 IO 입력을 사용하여 디자인에 UART ``Overlay`` 를 "배치"하는 예시입니다.
 
 .. literalinclude:: ../../fpga/src/main/scala/vcu118/TestHarness.scala
     :language: scala
     :start-after: DOC include start: UartOverlay
     :end-before: DOC include end: UartOverlay
 
-Here the ``UARTOverlayKey`` is referenced and used to "place" the necessary connections (and collateral) to connect to the UART.
-The ``UARTDesignInput`` is used to pass in the UART IO from the ``ChipTop``/``topDesign`` to the ``Overlay``.
-Note that the ``BundleBridgeSource`` can be viewed as a glorified wire (that is defined in the ``LazyModule`` scope).
-This pattern is similar for all other ``Overlays`` in the test harness.
-They must be "placed" and given a set of inputs (IOs, parameters).
-The main exception to this pattern is the ``Overlay`` used to generate the clock(s) for the FPGA.
+여기서 ``UARTOverlayKey``가 참조되고 UART에 연결하기 위한 필수 연결(및 부수 자료)을 "배치"하는 데 사용됩니다. ``UARTDesignInput`` 은 ``ChipTop`` / ``topDesign`` 에서 ``Overlay`` 로 UART IO를 전달하는 데 사용됩니다. ``BundleBridgeSource`` 는 ``LazyModule`` 범위에서 정의된 영광된 와이어로 볼 수 있습니다. 이 패턴은 테스트 하네스의 다른 모든 ``Overlays`` 에도 유사합니다. 이들은 "배치"되어야 하며 입력(IOs, 매개변수) 세트를 제공받아야 합니다. 이 패턴의 주요 예외는 FPGA의 클록 생성을 위해 사용되는 ``Overlay`` 입니다.
 
 .. literalinclude:: ../../fpga/src/main/scala/vcu118/TestHarness.scala
     :language: scala
     :start-after: DOC include start: ClockOverlay
     :end-before: DOC include end: ClockOverlay
 
-Without going into too much detail, the clocks overlay is placed in the harness and a PLL node (``harnessSysPLL``) generates the necessary clocks specified by ``ClockSinkNodes``.
-For ease of use, you can change the ``FPGAFrequencyKey`` to change the default clock frequency of the FPGA design.
+세부 사항을 생략하고 설명하면, 클록 오버레이는 하네스에 배치되며 PLL 노드( ``harnessSysPLL`` )가 ``ClockSinkNodes`` 에 의해 지정된 필요한 클록을 생성합니다. 사용의 편의를 위해, 기본 FPGA 디자인의 클록 주파수를 변경하려면 ``FPGAFrequencyKey``  를 변경할 수 있습니다.
 
-After the harness is created, the ``BundleBridgeSource``'s must be connected to the ``ChipTop`` IOs.
-This is done with harness binders and io binders (see ``fpga/src/main/scala/vcu118/HarnessBinders.scala`` and ``fpga/src/main/scala/vcu118/IOBinders.scala``).
-For more information on harness binders and io binders, refer to :ref:`Customization/IOBinders:IOBinders and HarnessBinders`.
+하네스가 생성된 후, ``BundleBridgeSource`` 는 ``ChipTop`` IO에 연결되어야 합니다. 이는 하네스 바인더와 io 바인더로 수행됩니다 ( ``fpga/src/main/scala/vcu118/HarnessBinders.scala`` 및 ``fpga/src/main/scala/vcu118/IOBinders.scala`` 참조). 하네스 바인더와 io 바인더에 대한 자세한 내용은 :ref:`Customization/IOBinders:IOBinders and HarnessBinders` 를 참조하십시오.
 
-.. Note:: Remember that since whenever a new test harness is created (or the config changes, or the config packages changes, or...), you need to modify the make invocation.
-    For example, ``make SUB_PROJECT=vcu118 CONFIG=MyNewVCU118Config CONFIG_PACKAGE=this.is.my.scala.package bitstream``.
-    See :ref:`Prototyping/General:Generating a Bitstream` for information on the various make variables.
+.. Note:: 새로운 테스트 하네스가 생성되거나 구성 변경, 구성 패키지 변경 등이 발생할 때마다 make 호출을 수정해야 한다는 점을 기억하십시오. 예를 들어, ``make SUB_PROJECT=vcu118 CONFIG=MyNewVCU118Config CONFIG_PACKAGE=this.is.my.scala.package bitstream`` 와 같이 수정해야 합니다. 다양한 make 변수에 대한 정보는 :ref:`Prototyping/General:Generating a Bitstream` 을 참조하십시오.
 
 Running Linux on VCU118 Designs
 -------------------------------
 
-As mentioned above, the default VCU118 harness is setup with a UART and a SPI SDCard.
-These are utilized to both interact with the DUT (with the UART) and load in Linux (with the SDCard).
-The following steps describe how to build and run buildroot Linux on the prototype platform.
+위에서 언급했듯이, 기본 VCU118 하네스는 UART와 SPI SDCard로 설정되어 있습니다. 이들은 DUT와 상호작용(UART 사용)하고 Linux를 로드(SDCard 사용)하는 데 사용됩니다. 다음 단계는 프로토타입 플랫폼에서 buildroot Linux를 빌드하고 실행하는 방법을 설명합니다.
 
 Building Linux with FireMarshal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since the prototype currently does not have a block device setup for it, we build Linux with the rootfs built into the binary (otherwise known as "initramfs" or "nodisk" version of Linux).
-To make building this type of Linux binary easy, we will use the FireMarshal platform (see :ref:`fire-marshal` for more information).
+현재 프로토타입은 블록 디바이스가 설정되어 있지 않기 때문에, 우리는 rootfs를 바이너리에 내장한 Linux를 빌드합니다 (다른 말로 "initramfs" 또는 "nodisk" 버전의 Linux). 이러한 유형의 Linux 바이너리를 쉽게 빌드하기 위해 FireMarshal 플랫폼을 사용합니다 (초기 설정에 대한 자세한 내용은 :ref:`fire-marshal` 을 참조하십시오).
 
-1. Setup FireMarshal (see :ref:`fire-marshal` on the initial setup).
-2. By default, FireMarshal is setup to work with FireSim.
-   Instead, we want to target the prototype platform.
-   This is done by switching the FireMarshal "board" from "firechip" to "prototype" using ``marshal-config.yaml``:
+1. FireMarshal을 설정하십시오 (초기 설정에 대한 내용은 :ref:`fire-marshal` 을 참조하십시오).
+2. 기본적으로 FireMarshal은 FireSim과 함께 작동하도록 설정되어 있습니다. 대신, 우리는 프로토타입 플랫폼을 목표로 합니다. 이는 ``marshal-config.yaml`` 을 사용하여 FireMarshal "보드"를 "firechip"에서 "prototype"으로 전환하여 수행됩니다:
 
 .. code-block:: shell
 
-    # this assumes you do not have a `marshal-config.yaml` file already setup
+    # 이미 `marshal-config.yaml` 파일이 설정되어 있지 않다고 가정합니다.
     echo "board-dir : 'boards/prototype'" > $PATH_TO_FIREMARSHAL/marshal-config.yaml
 
-.. Note:: Refer to the FireMarshal docs on more ways to set the board differently through environment variables and more.
+.. Note:: 환경 변수 등을 통해 보드를 다르게 설정하는 방법에 대해서는 FireMarshal 문서를 참조하십시오.
 
-3. Next, build the workload (a.k.a buildroot Linux) in FireMarshal with the ``nodisk`` option flag.
-   For the rest of these steps, we will assume you are using the base ``br-base.json`` workload.
-   This workload has basic support for GPIO and SPI drivers (in addition to the default UART driver) but you can build off it in different workloads (refer to FireMarshal docs on workload inheritance).
+3. 다음으로, FireMarshal에서 ``nodisk`` 옵션 플래그를 사용하여 워크로드(예: buildroot Linux)를 빌드하십시오. 이 단계에서는 기본 ``br-base.json`` 워크로드를 사용하는 것으로 가정합니다. 이 워크로드는 기본 UART 드라이버 외에도 GPIO 및 SPI 드라이버에 대한 기본 지원을 포함하고 있습니다. 다른 워크로드에서 이를 기반으로 빌드할 수 있습니다 (워크로드 상속에 대한 자세한 내용은 FireMarshal 문서를 참조하십시오).
 
 .. code-block:: shell
 
-    ./marshal -v -d build br-base.json # here the -d indicates --nodisk or initramfs
+    ./marshal -v -d build br-base.json # 여기서 -d는 --nodisk 또는 initramfs를 나타냅니다.
 
-.. Note:: Using the "board" FireMarshal functionality allows any child workload depending on the ``br-base.json`` workload specification to target a "prototype" platform rather than FireChip platform.
-   Thus, you can re-use existing workloads that depend on ``br-base.json`` on the prototype platform by just changing the "board"!
+.. Note:: "보드" FireMarshal 기능을 사용하면 ``br-base.json`` 워크로드 사양에 의존하는 모든 자식 워크로드가 FireChip 플랫폼이 아닌 "prototype" 플랫폼을 타겟팅할 수 있습니다. 따라서 "보드"만 변경하여 프로토타입 플랫폼에서 기존 워크로드를 재사용할 수 있습니다!
 
-4. The last step to generate the proper binary is to flatten it.
-   This is done by using FireMarshal's ``install`` feature which will produce a ``*-flat`` binary in the ``$PATH_TO_FIREMARSHAL/images`` directory (in our case ``br-base-bin-nodisk-flat``) from the previously built Linux binary (``br-base-bin-nodisk``).
+4. 적절한 바이너리를 생성하는 마지막 단계는 이를 평탄화하는 것입니다. 이는 FireMarshal의 ``install`` 기능을 사용하여 이전에 빌드된 Linux 바이너리(``br-base-bin-nodisk`` )에서 ``$PATH_TO_FIREMARSHAL/images`` 디렉터리에 ``*-flat`` 바이너리(이 경우 ``br-base-bin-nodisk-flat`` )를 생성하여 수행됩니다.
 
 .. code-block:: shell
 
@@ -97,38 +71,27 @@ To make building this type of Linux binary easy, we will use the FireMarshal pla
 Setting up the SDCard
 ~~~~~~~~~~~~~~~~~~~~~
 
-These instructions assume that you have a spare uSDCard that can be loaded with Linux and other files using two partitions.
-The 1st partition will be used to store the Linux binary (created with FireMarshal or other means) while the 2nd partition will store a file system that can be accessed from the DUT.
-Additionally, these instructions assume you are using Linux with ``sudo`` privileges and ``gdisk``, but you can follow a similar set of steps on Mac (using ``gpt`` or another similar program).
+이 지침은 두 개의 파티션을 사용하여 Linux 및 기타 파일을 로드할 수 있는 여분의 uSDCard가 있으며 Linux와 ``sudo`` 권한 및 ``gdisk`` 를 사용하는 것으로 가정합니다. 그러나 Mac에서는 유사한 절차를 따를 수 있습니다 (``gpt`` 또는 다른 유사한 프로그램 사용).
 
-1. Wipe the GPT on the card using ``gdisk``.
-   Use the `z` command from the expert menu (opened with 'x', closed with 'm') to zap everything.
-   For rest of these instructions, we assume the SDCard path is ``/dev/sdc`` (replace this with the path to your SDCard).
+1. ``gdisk`` 를 사용하여 카드의 GPT를 지우십시오. 전문가 메뉴(‘x’로 열고 ‘m’으로 닫음)에서 `z` 명령을 사용하여 모든 것을 제거하십시오. 나머지 지침에서는 SDCard 경로를 ``/dev/sdc`` 로 가정합니다 (SDCard 경로를 자신의 경로로 교체하십시오).
 
 .. code-block:: shell
 
     sudo gdisk /dev/sdc
 
-2. Create the new GPT with `o`.
-   Click yes on all the prompts.
+2. `o` 를 사용하여 새로운 GPT를 생성하십시오. 모든 프롬프트에 예를 선택하십시오.
 
-3. The VCU118 bootrom assumes that the Linux binary to load into memory will be located on sector 34 of the SDCard.
-   Change the default partition alignment to `1` so you can write to sector `34`.
-   Do this with the `l` command from the expert menu (opened with 'x', closed with 'm').
+3. VCU118 부트롬은 SDCard의 섹터 34에 위치한 Linux 바이너리를 메모리에 로드할 것으로 가정합니다. 섹터 `34` 에 쓸 수 있도록 기본 파티션 정렬을 `1` 로 변경하십시오. 전문가 메뉴에서 `l` 명령을 사용하여 수행합니다 (전문가 메뉴는 'x'로 열고 'm'으로 닫습니다).
 
-4. Create a 512MiB partition to store the Linux binary (this can be smaller but it must be larger than the size of the Linux binary).
-   Use `n`, partion number 1 and select sector 34, with size `+1048576` (corresponding to 512MiB).
-   For the type, search for the `apfs` type and use the hex number given.
+4. Linux 바이너리를 저장할 512MiB 파티션을 생성하십시오 (이 크기는 더 작을 수 있지만 Linux 바이너리 크기보다는 커야 합니다). `n` 을 사용하고, 파티션 번호 1을 선택하고 섹터 34를 선택한 후 크기 `+1048576` (512MiB
 
-5. Create a second partition to store any other files with the rest of the SDCard.
-   Use `n` and use the defaults for partition number, starting sector and overall size (expand the 2nd partition to the rest of the SDCard space).
-   For the type, search for the `hfs` and use the hex number given.
+에 해당)을 입력하십시오. 타입으로 `apfs` 타입을 검색하여 주어진 16진수를 사용하십시오.
 
-6. Write the changes using `w`.
+5. 나머지 SDCard 공간을 사용하여 다른 파일을 저장할 두 번째 파티션을 생성하십시오. `n` 을 사용하고, 파티션 번호, 시작 섹터 및 전체 크기에 대한 기본값을 사용하십시오 (두 번째 파티션을 SDCard의 나머지 공간으로 확장하십시오). 타입으로 `hfs` 를 검색하여 주어진 16진수를 사용하십시오.
 
-7. Setup the filesystem on the 2nd partition.
-   Note that the ``/dev/sdc2`` points to the 2nd partition.
-   Use the following command:
+6. `w` 를 사용하여 변경 사항을 기록하십시오.
+
+7. 두 번째 파티션에 파일 시스템을 설정하십시오. ``/dev/sdc2`` 가 두 번째 파티션을 가리킨다는 점을 유의하십시오. 다음 명령을 사용하십시오:
 
 .. code-block:: shell
 
@@ -137,21 +100,18 @@ Additionally, these instructions assume you are using Linux with ``sudo`` privil
 Transfer and Run Linux from the SDCard
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you have a Linux boot binary and the SDCard is setup properly (1st partition at sector 34), you can transfer the binary to the 1st SDCard partition.
-In this example, we generated a ``br-base-bin-nodisk-flat`` from FireMarshal and we will load it using ``dd``.
-Note that ``sdc1`` points to the 1st partition (remember to change the ``sdc`` to your own SDCard path).
+Linux 부팅 바이너리와 SDCard가 올바르게 설정된 후 (1번째 파티션이 섹터 34에 위치), 바이너리를 1번째 SDCard 파티션에 전송할 수 있습니다. 이 예제에서는 FireMarshal에서 ``br-base-bin-nodisk-flat`` 을 생성했으며 이를 ``dd`` 를 사용하여 로드할 것입니다. ``sdc1`` 이 1번째 파티션을 가리킨다는 점을 기억하십시오 (``sdc`` 를 자신의 SDCard 경로로 변경하십시오).
 
 .. code-block:: shell
 
     sudo dd if=$PATH_TO_FIREMARSHAL/br-base-bin-nodisk-flat of=/dev/sdc1
 
-If you want to add files to the 2nd partition, you can also do this now.
+두 번째 파티션에 파일을 추가하려면 지금 추가할 수도 있습니다.
 
-After loading the SDCard with Linux and potentially other files, you can program the FPGA and plug in the SDCard.
-To interact with Linux via the UART console, you can connect to the serial port (in this case called ``ttyUSB1``) using something like ``screen``:
+SDCard에 Linux 및 잠재적으로 다른 파일을 로드한 후, FPGA를 프로그래밍하고 SDCard를 삽입하십시오. UART 콘솔을 통해 Linux와 상호작용하려면 ``screen`` 과 같은 프로그램을 사용하여 시리얼 포트에 연결할 수 있습니다 (이 경우 ``ttyUSB1`` 이라 불림):
 
 .. code-block:: shell
 
    screen -S FPGA_UART_CONSOLE /dev/ttyUSB1 115200
 
-Once connected, you should see the binary being loaded as well as Linux output (in some cases you might need to reset the DUT). Sign in as 'root' with password 'fpga'.
+연결되면 바이너리가 로드되는 것과 Linux 출력이 표시되어야 합니다 (일부 경우에는 DUT를 리셋해야 할 수도 있습니다). 'root'로 로그인하고 비밀번호는 'fpga'입니다.

@@ -3,51 +3,47 @@
 Building A Chip
 ===============
 
-In this section, we will discuss many of the ASIC-specific transforms and methodologies within Chipyard.
-For the full documentation on how to use the VLSI tool flow, see the `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__.
+이 섹션에서는 Chipyard 내의 ASIC 전용 변환 및 방법론에 대해 논의합니다.
+VLSI 도구 흐름을 사용하는 방법에 대한 전체 문서는 `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__ 에서 확인할 수 있습니다.
 
 Transforming the RTL
 --------------------
 
-Building a chip requires specializing the generic verilog emitted by FIRRTL to adhere to the constraints imposed by the technology used for fabrication.
-This includes mapping Chisel memories to available technology macros such as SRAMs, mapping the input and output of your chip to connect to technology IO cells, see :ref:`Tools/Tapeout-Tools:Tapeout-tools`.
-In addition to these required transformations, it may also be beneficial to transform the RTL to make it more amenable to hierarchical physical design easier.
-This often includes modifying the logical hierarchy to match the physical hierarchy through grouping components together or flattening components into a single larger module.
-
+칩을 제작하려면 FIRRTL에서 생성된 일반적인 Verilog를 사용하여, 제조에 사용되는 기술의 제약을 준수하도록 특화해야 합니다.
+이 과정에는 Chisel 메모리를 SRAM과 같은 사용 가능한 기술 매크로로 매핑하고, 칩의 입출력을 기술 IO 셀에 연결하는 작업이 포함됩니다. 자세한 내용은 :ref:`Tools/Tapeout-Tools:Tapeout-tools` 를 참조하십시오.
+이러한 필수 변환 외에도, RTL을 변환하여 계층적 물리적 설계가 더 용이하도록 만드는 것도 유익할 수 있습니다.
+이는 종종 논리적 계층 구조를 물리적 계층 구조와 일치시키기 위해 구성 요소를 그룹화하거나 구성 요소를 단일 큰 모듈로 평탄화하는 작업을 포함합니다.
 
 Modifying the logical hierarchy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Building a large or complex chip often requires using hierarchical design to place and route sections of the chip separately.
-In addition, the design as written in Chipyard may not have a hierarchy that matches the physical hierarchy that would work best in the place and route tool.
-In order to reorganize the design to have its logical hierarchy match its physical hierarchy there are several FIRRTL transformations that can be run.
-These include grouping, which pull several modules into a larger one, and flattening, which dissolves a modules boundary leaving its components in its containing module.
-These transformations can be applied repeatedly to different parts of the design to arrange it as the physical designer sees fit.
-More details on how to use these transformations to reorganize the design hierarchy are forthcoming.
-
+크고 복잡한 칩을 설계할 때는 칩의 섹션을 별도로 배치하고 라우팅할 수 있는 계층적 설계를 사용하는 것이 필요합니다.
+또한, Chipyard에서 작성된 설계는 배치 및 라우팅 도구에서 최적으로 작동하는 물리적 계층 구조와 일치하지 않을 수 있습니다.
+설계의 논리적 계층 구조를 물리적 계층 구조와 일치시키기 위해 실행할 수 있는 여러 FIRRTL 변환이 있습니다.
+여기에는 여러 모듈을 더 큰 모듈로 그룹화하는 작업과, 모듈 경계를 해체하여 그 구성 요소를 포함하는 모듈로 평탄화하는 작업이 포함됩니다.
+이러한 변환은 물리적 설계자가 적합하다고 판단하는 방식으로 설계를 배열하기 위해 설계의 다른 부분에 반복적으로 적용할 수 있습니다.
+설계 계층 구조를 재구성하기 위해 이러한 변환을 사용하는 방법에 대한 자세한 내용은 추후 제공될 예정입니다.
 
 Creating a floorplan
 --------------------
 
-An ASIC floorplan is a specification that the place-and-route tools will follow when placing instances in the design.
-This includes the top-level chip dimensions, placement of SRAM macros, placement of custom (analog) circuits, IO cell placement, bump or wirebond pad placement, blockages, hierarchical boundaries, and pin placement.
+ASIC 플로어플랜은 배치 및 라우팅 도구가 설계 내의 인스턴스를 배치할 때 따르는 사양입니다.
+여기에는 최상위 칩 크기, SRAM 매크로의 배치, 사용자 정의(아날로그) 회로의 배치, IO 셀 배치, 범프 또는 와이어본드 패드 배치, 블로케이지, 계층 경계 및 핀 배치가 포함됩니다.
 
-Much of the design effort that goes into building a chip involves developing optimal floorplans for the instance of the design that is being manufactured.
-Often this is a highly manual and iterative process which consumes much of the physical designer's time.
-This cost becomes increasingly apparent as the parameterization space grows rapidly when using tools like Chisel- cycle times are hampered by the human labor
-that is required to floorplan each instance of the design.
-The Hammer team is actively developing methods of improving the agility of floorplanning for generator-based designs, like those that use Chisel.
-The libraries we are developing will emit Hammer IR that can be passed directly to the Hammer tool without the need for human intervention.
-Stay tuned for more information.
+칩을 제작하는 데 필요한 설계 작업의 많은 부분은 제조될 설계 인스턴스에 대한 최적의 플로어플랜을 개발하는 데 중점을 둡니다.
+종종 이는 물리적 설계자의 시간을 많이 소비하는 고도로 수작업이 필요한 반복적인 과정입니다.
+Chisel과 같은 도구를 사용할 때 매개변수화 공간이 급격히 증가함에 따라 이 비용이 더욱 명확해집니다. 
+Hammer 팀은 Chisel과 같은 생성기 기반 설계의 플로어플래닝 민첩성을 향상시키기 위한 방법을 적극적으로 개발하고 있습니다.
+우리가 개발 중인 라이브러리는 인간의 개입 없이 Hammer 도구에 직접 전달할 수 있는 Hammer IR을 생성할 것입니다.
+더 많은 정보를 기대해 주세요.
 
-In the meantime, see the `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__ for information on the Hammer IR floorplan API.
-It is possible to write this IR directly, or to generate it using simple python scripts.
-While we certainly look forward to having a more featureful toolkit, we have built many chips to date in this way.
-
+그동안 Hammer IR 플로어플랜 API에 대한 정보는 `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__ 를 참조하십시오.
+이 IR을 직접 작성하거나 간단한 Python 스크립트를 사용하여 생성할 수 있습니다.
+우리는 더 많은 기능을 가진 도구 세트를 기대하고 있지만, 현재까지 이 방법을 사용하여 여러 칩을 제작해 왔습니다.
 
 Running the VLSI tool flow
 --------------------------
 
-For the full documentation on how to use the VLSI tool flow, see the `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__.
-For setup  and instructions for a VLSI tool flow in the context of Chipyard, see :ref:`hammer_basic_flow`.
-For specific examples, see :ref:`tutorial`, :ref:`sky130-commercial-tutorial`, and :ref:`sky130-openroad-tutorial`.
+VLSI 도구 흐름을 사용하는 방법에 대한 전체 문서는 `Hammer Documentation <https://hammer-vlsi.readthedocs.io/>`__ 에서 확인할 수 있습니다.
+Chipyard에서 VLSI 도구 흐름을 설정하고 실행하는 방법에 대한 내용은 :ref:`hammer_basic_flow` 를 참조하십시오.
+특정 예제는 :ref:`tutorial`, :ref:`sky130-commercial-tutorial`, 및 :ref:`sky130-openroad-tutorial` 을 참조하십시오.
