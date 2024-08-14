@@ -14,7 +14,7 @@ Basic VCU118 Design
 Brief Implementation Description + More Complicated Designs
 -----------------------------------------------------------
 
-VCU118 디자인의 기본은 외부 IO를 Chipyard 디자인에 연결하기 위한 특수 테스트 하네스를 만드는 것에 있습니다. 이는 기본 VCU118 FPGA 타겟에서 ``VCU118TestHarness`` 를 사용하여 이루어집니다. ``VCU118TestHarness`` (``fpga/src/main/scala/vcu118/TestHarness.scala`` 에 위치)는 VCU118 외부 IO에 연결되는 ``Overlays`` 를 사용합니다. 일반적으로 ``Overlays`` 는 ``ChipTop`` (파일에서 ``topDesign``으로 표시됨)에서 IO를 가져와 "배치"하고 외부 IO에 연결하며 필요한 Vivado 부수 자료를 생성합니다. 예를 들어, 아래는 ``io_uart_bb`` 라는 IO 입력을 사용하여 디자인에 UART ``Overlay`` 를 "배치"하는 예시입니다.
+VCU118 디자인의 기본은 외부 IO를 Chipyard 디자인에 연결하기 위한 특수 테스트 하네스를 만드는 것에 있습니다. 이는 기본 VCU118 FPGA 타겟에서 ``VCU118TestHarness`` 를 사용하여 이루어집니다. ``VCU118TestHarness`` (``fpga/src/main/scala/vcu118/TestHarness.scala`` 에 위치)는 VCU118 외부 IO에 연결되는 ``Overlays`` 를 사용합니다. 일반적으로 ``Overlays`` 는 ``ChipTop`` (파일에서 ``topDesign`` 으로 표시됨)에서 IO를 가져와 "배치"하고 외부 IO에 연결하며 필요한 Vivado 부수 자료를 생성합니다. 예를 들어, 아래는 ``io_uart_bb`` 라는 IO 입력을 사용하여 디자인에 UART ``Overlay`` 를 "배치"하는 예시입니다.
 
 .. literalinclude:: ../../fpga/src/main/scala/vcu118/TestHarness.scala
     :language: scala
